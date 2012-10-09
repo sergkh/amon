@@ -5,7 +5,7 @@ import java.util.List;
 
 /**
  * Counter is one monitored parameter, for example CPU, memory
- * disk i/o etc. The monitor displays information got from counter.s
+ * disk i/o etc. The monitor displays information got from counter*s
  * 
  * @author Sergey
  */

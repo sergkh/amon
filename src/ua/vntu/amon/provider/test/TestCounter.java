@@ -17,8 +17,8 @@ import ua.vntu.amon.provider.Counter;
  */
 public class TestCounter extends AbstractEntity implements Counter {
 
-	private static final int MAX_VAL			= 1000;
-	private static final int VALUES_COUNT 	= 5000;
+	private static final int MAX_VAL= 1000;
+	private static final int VALUES_COUNT= 5000;
 	
 	private List<Integer> data;
 	private Date start;
