@@ -17,7 +17,7 @@ public class JsonToJava {
 		try {
 	 
 			// read from file, convert it to user class
-			User user = mapper.readValue(new File("c:\\user.json"), User.class);
+			User user = mapper.readValue(new File("d:\\user.json"), User.class);
 	 
 			// display to console
 			System.out.println(user);

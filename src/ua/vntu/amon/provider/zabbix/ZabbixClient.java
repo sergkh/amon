@@ -31,6 +31,8 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
+import ua.vntu.amon.json.converting.User;
+
 public class ZabbixClient  {
 
 	private static final String CONTENT_TYPE = "application/json";
@@ -42,7 +44,7 @@ public class ZabbixClient  {
 	protected final HttpClient httpclient;
 	protected final ObjectMapper mapper;
 	
-	private final String url = "http://localhost/";
+	private final String url = "http://192.168.56.101/api_jsonrpc.php";
 	
 	public ZabbixClient() {
 		mapper = new ObjectMapper();
@@ -60,7 +62,12 @@ public class ZabbixClient  {
 		httpclient = createHttpClient();
 	}
 	
-	public void send(Object message) throws JsonGenerationException, JsonMappingException, IOException {
+	public String register(String login, String password) {
+		
+		
+		return send(auth, Result.class).getResult();
+	} 
+	private <T> T send(Object message, Class<T> clazz) throws JsonGenerationException, JsonMappingException, IOException {
 		HttpPost post = new HttpPost(url);
 		
 		post.setHeader("Content-Type", CONTENT_TYPE);
@@ -80,9 +87,14 @@ public class ZabbixClient  {
 			throw new RuntimeException("Request failed to '" + url + "' with HTTP code: " + statusCode);
 		}
 		
-		BaseResponse respData = mapper.readValue(resp.getEntity().getContent(), BaseResponse.class);  
+		ByteArrayOutputStream bout = new ByteArrayOutputStream();
+		resp.getEntity().writeTo(bout);
 		
-		System.out.println("Status: " + respData.getStatus());   
+		System.out.println(">>" + new String(bout.toByteArray())); 
+		
+		return mapper.readValue(bout.toByteArray(), clazz);  
+		
+		// System.out.println("Status: " + respData.getStatus());   
 	}
 	
 	private HttpClient createHttpClient() {
@@ -109,7 +121,7 @@ public class ZabbixClient  {
 	
 	public static void main(String[] args) throws Exception {
 		ZabbixClient client = new ZabbixClient();
-		client.send("Some message");
+		String token = client.register("Admin", "zabbix");
 	}
 	
 	

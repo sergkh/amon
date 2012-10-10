@@ -8,7 +8,7 @@ package ua.vntu.amon.json.converting;
 import java.util.*;
 
 public class User {
-	private int age = 20 ;
+	private String jsonrpc = "2.0";
 	private String name = "Yaric";
 	private List<String> messages = new ArrayList<String>(){
 		
@@ -21,13 +21,44 @@ public class User {
 		add("message 3 : World");
 		}
 	};
-	
+
+	public String getJsonrpc() {
+		return jsonrpc;
+	}
+
+	public void setJsonrpc(String jsonrpc) {
+		this.jsonrpc = jsonrpc;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+
+
+	public List<String> getMessages() {
+		return messages;
+	}
+
+
+
+	public void setMessages(List<String> messages) {
+		this.messages = messages;
+	}
+
+
 
 	/**
 	 * @param args
 	 */
 	public String toString() {
-		return "User [age = "  + age + " name =" + name + "," +
+		return "User [jsonrpc = "  + jsonrpc + " name =" + name + "," +
 				"messages=" + messages + "]" ;
 	}
 
