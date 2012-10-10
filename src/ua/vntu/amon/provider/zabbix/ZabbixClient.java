@@ -65,7 +65,7 @@ public class ZabbixClient  {
 	public String register(String login, String password) {
 		
 		
-		return send(auth, Result.class).getResult();
+		return ""; //send(auth, Result.class).getResult();
 	} 
 	private <T> T send(Object message, Class<T> clazz) throws JsonGenerationException, JsonMappingException, IOException {
 		HttpPost post = new HttpPost(url);
