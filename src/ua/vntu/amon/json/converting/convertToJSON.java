@@ -12,7 +12,7 @@ public class convertToJSON {
 	@SuppressWarnings("deprecation")
 	public static void main(String[] args) {
 		
-		User user = new User();
+		AuthRequest user = new AuthRequest(null, null);
 		ObjectMapper mapper  = new ObjectMapper ();
 		
 		try {
