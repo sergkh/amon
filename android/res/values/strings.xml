@@ -1,8 +1,7 @@
 <resources>
 
-    <string name="app_name">andr_monitorer</string>
-    <string name="hello_world">Hello world!</string>
-    <string name="menu_settings">Settings</string>
-    <string name="title_activity_dashboard">Graph</string>
+	<string name="app_name">amon</string>
+	<string name="hello_world">Hello world!</string>
+	<string name="menu_settings">Settings</string>
 
 </resources>
