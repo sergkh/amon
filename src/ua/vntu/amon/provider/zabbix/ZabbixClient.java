@@ -33,7 +33,6 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 
-
 import ua.vntu.amon.json.converting.AuthRequest;
 import ua.vntu.amon.json.converting.GetHost;
 import ua.vntu.amon.json.converting.ResponseAuthRequest;
