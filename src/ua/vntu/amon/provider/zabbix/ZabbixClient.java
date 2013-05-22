@@ -33,6 +33,7 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 
+
 import ua.vntu.amon.json.converting.AuthRequest;
 import ua.vntu.amon.json.converting.GetHost;
 import ua.vntu.amon.json.converting.ResponseAuthRequest;
@@ -204,11 +205,11 @@ public class ZabbixClient {
 	}
 
 	public static void main(String[] args) throws Exception {
-		ZabbixClient client = new ZabbixClient();
-		client.register("Admin", "zabbix");
-		client.register2("extend", "name");
-		
-		
+		/*ZabbixClient client = new ZabbixClient();
+		LoginForm login = new LoginForm();
+		client.register(login.getName(), login.getPassword());*/
+		// client.register2("extend", "name");
+
 	}
 
 	static class DumbTrustManager implements X509TrustManager {
