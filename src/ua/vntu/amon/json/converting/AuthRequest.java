@@ -11,7 +11,7 @@ public class AuthRequest {
 
 	private String title ="AuthRequest";
 	private String jsonrpc = "2.0";
-	private String method = "user.authenticate";
+	private String method = "user.login";
 	private Map<String, String> params = new HashMap<String, String>();
 	private String auth;
 	private int id;

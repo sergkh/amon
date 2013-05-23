@@ -48,7 +48,7 @@ public class ZabbixClient {
 
 	private final int CONNECTION_TIMEOUT = 30000;
 
-	public String auth;
+	public String tokenSession;
 
 	protected final HttpClient httpclient;
 	protected final ObjectMapper mapper;
@@ -87,11 +87,19 @@ public class ZabbixClient {
 	public Object register2(String outputting, String sortfilding)
 			throws IOException {
 		GetHost gethoster = new GetHost(outputting, sortfilding);
-		gethoster.setAuth(auth);
+		gethoster.setAuth(tokenSession);
 		System.out.println();
 		System.out.println(gethoster.getAuth());
 		return send(gethoster, Object.class, gethoster.getTitle());
 
+	}
+
+	public String getTokenSession() {
+		return tokenSession;
+	}
+
+	public void setTokenSession(String tokenSession) {
+		this.tokenSession = tokenSession;
 	}
 
 	// I do special for ResponseAuthRequest
@@ -131,8 +139,8 @@ public class ZabbixClient {
 
 		responseAuthRequest = mapper.readValue(bout.toByteArray(),
 				ResponseAuthRequest.class);
-		auth = responseAuthRequest.getResult();
-		System.out.println(auth);
+		tokenSession = responseAuthRequest.getResult();
+		System.out.println(tokenSession);
 		return responseAuthRequest;
 
 	}
@@ -205,10 +213,10 @@ public class ZabbixClient {
 	}
 
 	public static void main(String[] args) throws Exception {
-		/*ZabbixClient client = new ZabbixClient();
+	/*	ZabbixClient client = new ZabbixClient();
 		LoginForm login = new LoginForm();
-		client.register(login.getName(), login.getPassword());*/
-		// client.register2("extend", "name");
+		client.register(login.getName(), login.getPassword());
+		 client.register2("extend", "name");*/
 
 	}
 

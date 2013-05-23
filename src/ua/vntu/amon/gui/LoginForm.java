@@ -80,7 +80,7 @@ public class LoginForm implements ActionListener {
 
 		Font errorFont = new Font("Verdana", Font.BOLD, 14);
 		Font simpleFont = new Font("Verdana", Font.PLAIN, 14);
-		userNameLabel = new JLabel("User");
+		userNameLabel = new JLabel("Login name");
 		userNameLabel.setFont(simpleFont);
 		passwordLabel = new JLabel("Password");
 		passwordLabel.setFont(simpleFont);
@@ -132,10 +132,10 @@ public class LoginForm implements ActionListener {
 			name = userNameTextField.getText();
 			password = passwordField.getText();
 			if ((name.equals("")) && password.equals("")) {
-				errorLabel.setText("Username and Password are required !!");
+				errorLabel.setText("Login name and Password are required !!");
 				errorLabel.setVisible(true);
 			} else if ((name.equals(""))) {
-				errorLabel.setText("Username is required !!");
+				errorLabel.setText("Login name is required !!");
 				errorLabel.setVisible(true);
 			} else if (password.equals("")) {
 				errorLabel.setText("Password is required !!");
@@ -143,11 +143,20 @@ public class LoginForm implements ActionListener {
 			} else {
 				try {
 					client.register(name, password);
+					client.register2("extend", "name");
+					if (client.getTokenSession()!=null){
+						@SuppressWarnings("unused")
+						GraphicsForm graphics= new GraphicsForm();
+						loginFrame.setVisible(false);
+					} else {
+						errorLabel.setText("Login name  or password is incorrect !!");
+						errorLabel.setVisible(true);						
+					}
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				errorLabel.setVisible(false);
+				//errorLabel.setVisible(false);
 			}
 		}
 	}
