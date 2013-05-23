@@ -1,14 +1,9 @@
 package ua.vntu.amon.json.converting;
-
-
-
 public class ResponseAuthRequest {
 
-	//private String title ="AuthRequest";
 	private String jsonrpc = "2.0";
 	private String result ;
 	private int id;
-	
 	private String title = "ResponseAuthRequest"; 
 	
 	public String getTitle() {
@@ -46,10 +41,4 @@ public class ResponseAuthRequest {
 	public void setId(int id) {
 		this.id = id;
 	}
-
-	
-	
-
-
-
 }

@@ -14,7 +14,6 @@ public class GetHost {
 	private String jsonrpc = "2.0";
 	private String method = "hostgroup.get";// hostgroup.get
 	private Map<String, String> params = new HashMap<String, String>();
-
 	// private List<Integer> param = new ArrayList<>();
 
 	private String auth;
@@ -23,7 +22,6 @@ public class GetHost {
 	public GetHost(String outputting, String sortfilding) {
 		params.put("output", outputting);
 		params.put("sortfiels", sortfilding);
-
 	}
 
 	public String getJsonrpc() {

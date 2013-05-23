@@ -63,7 +63,5 @@ public class AuthRequest {
 	
 	public String getTitle() {
 		return title;
-	}
-	
-	
+	}	
 }
