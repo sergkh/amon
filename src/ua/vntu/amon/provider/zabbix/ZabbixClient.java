@@ -1,10 +1,7 @@
 package ua.vntu.amon.provider.zabbix;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-//import java.io.FileOutputStream;
 import java.io.IOException;
-//import java.io.OutputStream;
 import java.net.Socket;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
@@ -33,10 +30,10 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 
-
 import ua.vntu.amon.json.converting.AuthRequest;
 import ua.vntu.amon.json.converting.GetHost;
 import ua.vntu.amon.json.converting.ResponseAuthRequest;
+import ua.vntu.amon.json.converting.ResponseGetHost;
 
 //import ua.vntu.amon.json.converting.User;
 
@@ -69,128 +66,79 @@ public class ZabbixClient {
 		// serializationConf =
 		// serializationConf.withSerializationInclusion(Inclusion.NON_NULL);
 		mapper.setSerializationConfig(serializationConf);
-
 		httpclient = createHttpClient();
 	}
-
-	public Object register(String login, String password) throws IOException {
-
-		AuthRequest author = new AuthRequest(login, password);
-		ResponseAuthRequest responseAuthRequest = new ResponseAuthRequest();
-
-		send(author, responseAuthRequest, author.getTitle());
-
-		return 1; // send(author, Object.class, author.getAuth());
-
-	}
-
-	public Object register2(String outputting, String sortfilding)
-			throws IOException {
-		GetHost gethoster = new GetHost(outputting, sortfilding);
-		gethoster.setAuth(tokenSession);
-		System.out.println();
-		System.out.println(gethoster.getAuth());
-		return send(gethoster, Object.class, gethoster.getTitle());
-
-	}
-
-	public String getTokenSession() {
-		return tokenSession;
-	}
-
-	public void setTokenSession(String tokenSession) {
-		this.tokenSession = tokenSession;
-	}
-
-	// I do special for ResponseAuthRequest
-	private <T> ResponseAuthRequest send(Object message,
-			ResponseAuthRequest responseAuthRequest, String title)
+	
+	private <T> T send(Object message, Class<T> clazz)
 			throws JsonGenerationException, JsonMappingException, IOException {
 		HttpPost post = new HttpPost(url);
-
 		post.setHeader("Content-Type", CONTENT_TYPE);
-
-		// increase connection timeout
 		post.getParams().setIntParameter("http.socket.timeout",
 				CONNECTION_TIMEOUT);
 
 		ByteArrayOutputStream outStream = new ByteArrayOutputStream();
 		mapper.writeValue(outStream, message);
-		// System.out.println(mapper.defaultPrettyPrintingWriter().writeValueAsString(user));
 		post.setEntity(new ByteArrayEntity(outStream.toByteArray()));
+		HttpResponse response = httpclient.execute(post);
 
-		HttpResponse resp = httpclient.execute(post);
-
-		int statusCode = resp.getStatusLine().getStatusCode();
-
+		int statusCode = response.getStatusLine().getStatusCode();
 		if (statusCode != 200) {
-			throw new RuntimeException("Request failed to '" + url
-					+ "' with HTTP code: " + statusCode);
+			throw new RuntimeException("Request failed to " + url
+					+ "'with HTTP code:" + statusCode);
 		}
 
-		ByteArrayOutputStream bout = new ByteArrayOutputStream();
-		resp.getEntity().writeTo(bout);
+		ByteArrayOutputStream jsonOut = new ByteArrayOutputStream();
+		response.getEntity().writeTo(jsonOut);
+		System.out.println(">>" + new String(jsonOut.toByteArray()));
+		return mapper.readValue(jsonOut.toByteArray(), clazz);
+	}
 
-		// bout ל³סעטעü ל³י הזסמם
-
-		mapper.writeValue(new File("d:\\" + title + ".json"),
-				new String(bout.toByteArray()));
-		System.out.println(">>" + new String(bout.toByteArray()));
-
-		responseAuthRequest = mapper.readValue(bout.toByteArray(),
-				ResponseAuthRequest.class);
+	public Object register(String login, String password) {
+		ResponseAuthRequest responseAuthRequest = new ResponseAuthRequest();
+		try {
+			responseAuthRequest = (ResponseAuthRequest) send(new AuthRequest(
+					login, password), ResponseAuthRequest.class);
+		} catch (JsonGenerationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		tokenSession = responseAuthRequest.getResult();
 		System.out.println(tokenSession);
 		return responseAuthRequest;
-
 	}
 
-	// --------------------------------------------------------------------------------------------------
-
-	private <T> T send(Object message, Class<T> clazz, String title)
-			throws JsonGenerationException, JsonMappingException, IOException {
-		HttpPost post = new HttpPost(url);
-
-		post.setHeader("Content-Type", CONTENT_TYPE);
-
-		// increase connection timeout
-		post.getParams().setIntParameter("http.socket.timeout",
-				CONNECTION_TIMEOUT);
-
-		ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-		mapper.writeValue(outStream, message);
-		// System.out.println(mapper.defaultPrettyPrintingWriter().writeValueAsString(user));
-		post.setEntity(new ByteArrayEntity(outStream.toByteArray()));
-
-		HttpResponse resp = httpclient.execute(post);
-
-		int statusCode = resp.getStatusLine().getStatusCode();
-
-		if (statusCode != 200) {
-			throw new RuntimeException("Request failed to '" + url
-					+ "' with HTTP code: " + statusCode);
+	public Object hosting(String output, String sortfield) {
+		ResponseGetHost responseGetHost = new ResponseGetHost();
+		GetHost getHost = new GetHost(output, sortfield);
+		getHost.setAuth(tokenSession);
+		try {
+			responseGetHost = (ResponseGetHost) send(getHost, Object.class);
+		} catch (JsonGenerationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-
-		ByteArrayOutputStream bout = new ByteArrayOutputStream();
-		resp.getEntity().writeTo(bout);
-
-		// bout ל³סעטעü ל³י הזסמם
-
-		mapper.writeValue(new File("d:\\" + title + ".json"),
-				new String(bout.toByteArray()));
-		System.out.println(">>" + new String(bout.toByteArray()));
-
-		return mapper.readValue(bout.toByteArray(), clazz);
-
-		// System.out.println("Status: " + respData.getStatus());
+		int tokenSession2 = responseGetHost.getId();
+		System.out.println(tokenSession2);
+		return responseGetHost;
 	}
-
+	
 	// ----------------------------------------------------------------------------
 	private HttpClient createHttpClient() {
 		SchemeRegistry schemeRegistry = new SchemeRegistry();
 		schemeRegistry.register(new Scheme("http", 80, PlainSocketFactory
 				.getSocketFactory()));
-
 		// turn ssl verification off
 		try {
 			SSLContext sslContext = SSLContext.getInstance("ssl");
@@ -213,10 +161,11 @@ public class ZabbixClient {
 	}
 
 	public static void main(String[] args) throws Exception {
-	/*	ZabbixClient client = new ZabbixClient();
-		LoginForm login = new LoginForm();
-		client.register(login.getName(), login.getPassword());
-		 client.register2("extend", "name");*/
+		/*
+		 * ZabbixClient client = new ZabbixClient(); LoginForm login = new
+		 * LoginForm(); client.register(login.getName(), login.getPassword());
+		 * client.register2("extend", "name");
+		 */
 
 	}
 
@@ -275,5 +224,13 @@ public class ZabbixClient {
 		public String getMessage() {
 			return message;
 		}
+	}
+
+	public String getTokenSession() {
+		return tokenSession;
+	}
+
+	public void setTokenSession(String tokenSession) {
+		this.tokenSession = tokenSession;
 	}
 }

@@ -8,8 +8,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.IOException;
-
 import javax.swing.*;
 import ua.vntu.amon.provider.zabbix.ZabbixClient;
 
@@ -143,20 +141,19 @@ public class LoginForm implements ActionListener {
 			} else {
 				try {
 					client.register(name, password);
-					client.register2("extend", "name");
-					if (client.getTokenSession()!=null){
+					client.hosting("extend", "name");
+					if (client.getTokenSession() != null) {
 						@SuppressWarnings("unused")
-						GraphicsForm graphics= new GraphicsForm();
+						GraphicsForm graphics = new GraphicsForm();
 						loginFrame.setVisible(false);
 					} else {
-						errorLabel.setText("Login name  or password is incorrect !!");
-						errorLabel.setVisible(true);						
+						errorLabel
+								.setText("Login name  or password is incorrect !!");
+						errorLabel.setVisible(true);
 					}
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
+				} catch (Exception e) {
 					e.printStackTrace();
 				}
-				//errorLabel.setVisible(false);
 			}
 		}
 	}

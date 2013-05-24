@@ -3,16 +3,7 @@ public class ResponseAuthRequest {
 
 	private String jsonrpc = "2.0";
 	private String result ;
-	private int id;
-	private String title = "ResponseAuthRequest"; 
-	
-	public String getTitle() {
-		return title;
-	}
-
-	public void setTitle(String title) {
-		this.title = title;
-	}
+	private int id;	
 
 	public ResponseAuthRequest() {
 		// TODO Auto-generated constructor stub
