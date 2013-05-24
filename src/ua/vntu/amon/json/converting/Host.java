@@ -5,9 +5,7 @@ public class Host {
 	private String name;
 	private int internal;
 	
-	public Host() {
-		// TODO Auto-generated constructor stub
-	}
+	public Host() {}
 
 	public int getGroupid() {
 		return groupid;
