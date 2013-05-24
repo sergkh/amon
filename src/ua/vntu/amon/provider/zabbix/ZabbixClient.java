@@ -46,7 +46,7 @@ public class ZabbixClient {
 	protected final HttpClient httpclient;
 	protected final ObjectMapper mapper;
 
-	private final String url = "http://192.168.248.9/api_jsonrpc.php"; // "http://192.168.56.101/api_jsonrpc.php";
+	private final String url = "http://192.168.56.101/api_jsonrpc.php";
 
 	public ZabbixClient() {
 		mapper = new ObjectMapper();
