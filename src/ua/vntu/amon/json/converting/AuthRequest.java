@@ -7,34 +7,17 @@ package ua.vntu.amon.json.converting;
 
 import java.util.*;
 
-public class AuthRequest {
+public class AuthRequest extends BaseRequest {
 
 	private String title ="AuthRequest";
-	private String jsonrpc = "2.0";
-	private String method = "user.login";
 	private Map<String, String> params = new HashMap<String, String>();
 	private String auth;
 	private int id;
 	
 	public AuthRequest(String login, String pass) {
+        super("user.login");
 		params.put("user", login);
 		params.put("password", pass);
-	}
-
-	public String getJsonrpc() {
-		return jsonrpc;
-	}
-
-	public void setJsonrpc(String jsonrpc) {
-		this.jsonrpc = jsonrpc;
-	}
-
-	public String getMethod() {
-		return method;
-	}
-
-	public void setMethod(String method) {
-		this.method = method;
 	}
 
 	public Map<String, String> getParams() {

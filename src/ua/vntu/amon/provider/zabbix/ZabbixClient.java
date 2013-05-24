@@ -6,6 +6,7 @@ import java.net.Socket;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
@@ -24,16 +25,11 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.params.HttpParams;
-import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 
-import ua.vntu.amon.json.converting.AuthRequest;
-import ua.vntu.amon.json.converting.GetHost;
-import ua.vntu.amon.json.converting.ResponseAuthRequest;
-import ua.vntu.amon.json.converting.ResponseGetHost;
+import ua.vntu.amon.json.converting.*;
 
 //import ua.vntu.amon.json.converting.User;
 
@@ -50,7 +46,7 @@ public class ZabbixClient {
 	protected final HttpClient httpclient;
 	protected final ObjectMapper mapper;
 
-	private final String url = "http://192.168.56.101/api_jsonrpc.php";
+	private final String url = "http://192.168.248.9/api_jsonrpc.php"; // "http://192.168.56.101/api_jsonrpc.php";
 
 	public ZabbixClient() {
 		mapper = new ObjectMapper();
@@ -69,8 +65,7 @@ public class ZabbixClient {
 		httpclient = createHttpClient();
 	}
 	
-	private <T> T send(Object message, Class<T> clazz)
-			throws JsonGenerationException, JsonMappingException, IOException {
+	private <T> T send(Object message, Class<T> clazz) throws IOException {
 		HttpPost post = new HttpPost(url);
 		post.setHeader("Content-Type", CONTENT_TYPE);
 		post.getParams().setIntParameter("http.socket.timeout",
@@ -89,48 +84,38 @@ public class ZabbixClient {
 
 		ByteArrayOutputStream jsonOut = new ByteArrayOutputStream();
 		response.getEntity().writeTo(jsonOut);
-		System.out.println(">>" + new String(jsonOut.toByteArray()));
+
+        System.out.println(">>" + new String(jsonOut.toByteArray()));
+
 		return mapper.readValue(jsonOut.toByteArray(), clazz);
 	}
 
 	public Object register(String login, String password) {
-		ResponseAuthRequest responseAuthRequest = new ResponseAuthRequest();
+		BaseResult<String> responseAuthRequest;
 		try {
-			responseAuthRequest = (ResponseAuthRequest) send(new AuthRequest(
-					login, password), ResponseAuthRequest.class);
-		} catch (JsonGenerationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (JsonMappingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+			responseAuthRequest = send(new AuthRequest(login, password), BaseResult.class);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
 		tokenSession = responseAuthRequest.getResult();
 		System.out.println(tokenSession);
 		return responseAuthRequest;
 	}
 
-	public Object hosting(String output, String sortfield) {
-		ResponseGetHost responseGetHost = new ResponseGetHost();
+	public GetHostsResponse hosting(String output, String sortfield) {
 		GetHost getHost = new GetHost(output, sortfield);
 		getHost.setAuth(tokenSession);
+
+        GetHostsResponse responseGetHost;
 		try {
-			responseGetHost = (ResponseGetHost) send(getHost, Object.class);
-		} catch (JsonGenerationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (JsonMappingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			responseGetHost = send(getHost, GetHostsResponse.class);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
 		}
-		int tokenSession2 = responseGetHost.getId();
-		System.out.println(tokenSession2);
+
+		System.out.println(Arrays.toString(responseGetHost.getResult().toArray()));
+
 		return responseGetHost;
 	}
 	

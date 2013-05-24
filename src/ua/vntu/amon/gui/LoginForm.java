@@ -129,6 +129,7 @@ public class LoginForm implements ActionListener {
 		if (ae.getSource() == submitButton) {
 			name = userNameTextField.getText();
 			password = passwordField.getText();
+
 			if ((name.equals("")) && password.equals("")) {
 				errorLabel.setText("Login name and Password are required !!");
 				errorLabel.setVisible(true);
