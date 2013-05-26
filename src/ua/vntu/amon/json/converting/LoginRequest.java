@@ -7,14 +7,14 @@ package ua.vntu.amon.json.converting;
 
 import java.util.*;
 
-public class AuthRequest extends BaseRequest {
+public class LoginRequest extends BaseRequest {
 
 	private String title ="AuthRequest";
 	private Map<String, String> params = new HashMap<String, String>();
 	private String auth;
 	private int id;
 	
-	public AuthRequest(String login, String pass) {
+	public LoginRequest(String login, String pass) {
         super("user.login");
 		params.put("user", login);
 		params.put("password", pass);

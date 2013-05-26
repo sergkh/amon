@@ -6,7 +6,9 @@ import java.net.Socket;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Vector;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
@@ -48,6 +50,10 @@ public class ZabbixClient {
 
 	private final String url = "http://192.168.56.101/api_jsonrpc.php";
 
+	private ArrayList<String> hostList = new ArrayList<String>();
+	private ArrayList<String> graphList = new ArrayList<String>();
+	private Vector<String> graphVector = new Vector<>();
+
 	public ZabbixClient() {
 		mapper = new ObjectMapper();
 
@@ -64,7 +70,7 @@ public class ZabbixClient {
 		mapper.setSerializationConfig(serializationConf);
 		httpclient = createHttpClient();
 	}
-	
+
 	private <T> T send(Object message, Class<T> clazz) throws IOException {
 		HttpPost post = new HttpPost(url);
 		post.setHeader("Content-Type", CONTENT_TYPE);
@@ -85,40 +91,88 @@ public class ZabbixClient {
 		ByteArrayOutputStream jsonOut = new ByteArrayOutputStream();
 		response.getEntity().writeTo(jsonOut);
 
-        System.out.println(">>" + new String(jsonOut.toByteArray()));
+		System.out.println(">>" + new String(jsonOut.toByteArray()));
 
 		return mapper.readValue(jsonOut.toByteArray(), clazz);
 	}
 
 	public Object register(String login, String password) {
-		BaseResult<String> responseAuthRequest;
+		BaseResult<String> loginResponse;
+		System.out.println("Login Request");
 		try {
-			responseAuthRequest = send(new AuthRequest(login, password), BaseResult.class);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-		tokenSession = responseAuthRequest.getResult();
-		System.out.println(tokenSession);
-		return responseAuthRequest;
-	}
-
-	public GetHostsResponse hosting(String output, String sortfield) {
-		GetHost getHost = new GetHost(output, sortfield);
-		getHost.setAuth(tokenSession);
-
-        GetHostsResponse responseGetHost;
-		try {
-			responseGetHost = send(getHost, GetHostsResponse.class);
+			loginResponse = send(new LoginRequest(login, password),
+					BaseResult.class);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 
-		System.out.println(Arrays.toString(responseGetHost.getResult().toArray()));
-
-		return responseGetHost;
+		tokenSession = loginResponse.getResult();
+		System.out.println(tokenSession);
+		return loginResponse;
 	}
-	
+
+	public HostGroupResponse hosting(String output, String sortfield) {
+		HostGroupRequest hostGroupRequest = new HostGroupRequest(output,
+				sortfield);
+		hostGroupRequest.setAuth(tokenSession);
+
+		HostGroupResponse hostGroupResponse;
+		System.out.println("HostGroup Request");
+		try {
+			hostGroupResponse = send(hostGroupRequest, HostGroupResponse.class);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+
+		System.out.println(Arrays.toString(hostGroupResponse.getResult()
+				.toArray()));
+		for (Host x : hostGroupResponse.getResult()) {
+			hostList.add(x.getName());
+		}
+		return hostGroupResponse;
+	}
+
+	public GraphGetObjectsResponse graphsObject(ArrayList<String> host) {
+		GraphGetObjectsRequest graphGetObjectsRequest = new GraphGetObjectsRequest(
+				host);
+		graphGetObjectsRequest.setAuth(tokenSession);
+
+		GraphGetObjectsResponse graphGetObjectsResponse;
+		System.out.println("GraphGetObject Request");
+		try {
+			graphGetObjectsResponse = send(graphGetObjectsRequest,
+					GraphGetObjectsResponse.class);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+
+		System.out.println(Arrays.toString(graphGetObjectsResponse.getResult()
+				.toArray()));
+		for (Graph x : graphGetObjectsResponse.getResult()) {
+			//graphList.add(x.getName());			
+			graphVector.add(x.getName());
+			//System.out.println(x.getName());
+			System.out.println(graphVector);
+		}
+		return graphGetObjectsResponse;
+	}
+
+	public Vector<String> getGraphVector() {
+		return graphVector;
+	}
+
+	public void setGraphVector(Vector<String> graphVector) {
+		this.graphVector = graphVector;
+	}
+
+	public ArrayList<String> getGraphList() {
+		return graphList;
+	}
+
+	public void setGraphList(ArrayList<String> graphList) {
+		this.graphList = graphList;
+	}
+
 	// ----------------------------------------------------------------------------
 	private HttpClient createHttpClient() {
 		SchemeRegistry schemeRegistry = new SchemeRegistry();
@@ -218,4 +272,13 @@ public class ZabbixClient {
 	public void setTokenSession(String tokenSession) {
 		this.tokenSession = tokenSession;
 	}
+
+	public ArrayList<String> getHostList() {
+		return hostList;
+	}
+
+	public void setHostList(ArrayList<String> hostList) {
+		this.hostList = hostList;
+	}
+
 }
