@@ -46,9 +46,13 @@ public class GraphicsForm implements ActionListener, MenuListener {
 
 	public void createGUI() {
 		/* Request to Zabbix */
+		System.out.println();
 		client.register(login, password);
-		client.hosting("extend", "name");
-		host.add("Zabbix server");
+		System.out.println();
+		client.host("extend");
+		System.out.println();
+		//host.add("Zabbix server");
+		host.addAll(client.getHostList());
 		client.graphsObject(host);
 
 		/* Frame */

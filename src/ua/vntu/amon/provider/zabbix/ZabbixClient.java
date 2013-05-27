@@ -51,7 +51,7 @@ public class ZabbixClient {
 	private final String url = "http://192.168.56.101/api_jsonrpc.php";
 
 	private ArrayList<String> hostList = new ArrayList<String>();
-	private ArrayList<String> graphList = new ArrayList<String>();
+	private ArrayList<String> hostGroupList = new ArrayList<String>();
 	private Vector<String> graphVector = new Vector<>();
 
 	public ZabbixClient() {
@@ -111,7 +111,7 @@ public class ZabbixClient {
 		return loginResponse;
 	}
 
-	public HostGroupResponse hosting(String output, String sortfield) {
+	public HostGroupResponse hostGroup(String output, String sortfield) {
 		HostGroupRequest hostGroupRequest = new HostGroupRequest(output,
 				sortfield);
 		hostGroupRequest.setAuth(tokenSession);
@@ -126,10 +126,31 @@ public class ZabbixClient {
 
 		System.out.println(Arrays.toString(hostGroupResponse.getResult()
 				.toArray()));
-		for (Host x : hostGroupResponse.getResult()) {
-			hostList.add(x.getName());
+		for (HostGroup x : hostGroupResponse.getResult()) {
+			hostGroupList.add(x.getName());
 		}
 		return hostGroupResponse;
+	}
+	
+	public HostResponse host(String output) {
+		HostRequest hostRequest = new HostRequest(output);
+		hostRequest.setAuth(tokenSession);
+
+		HostResponse hostResponse;
+		System.out.println("Host Request");
+		try {
+			hostResponse = send(hostRequest, HostResponse.class);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+
+		System.out.println(Arrays.toString(hostResponse.getResult()
+				.toArray()));
+		for (Host x : hostResponse.getResult()) {
+			hostList.add(x.getHost());
+			
+		}
+		return hostResponse;
 	}
 
 	public GraphicsGetObjectResponse graphsObject(ArrayList<String> host) {
@@ -149,28 +170,9 @@ public class ZabbixClient {
 		System.out.println(Arrays.toString(graphGetObjectsResponse.getResult()
 				.toArray()));
 		for (Graphics x : graphGetObjectsResponse.getResult()) {
-			//graphList.add(x.getName());			
-			graphVector.add(x.getName());
-			//System.out.println(x.getName());
-			System.out.println(graphVector);
+			graphVector.add(x.getName());			
 		}
 		return graphGetObjectsResponse;
-	}
-
-	public Vector<String> getGraphVector() {
-		return graphVector;
-	}
-
-	public void setGraphVector(Vector<String> graphVector) {
-		this.graphVector = graphVector;
-	}
-
-	public ArrayList<String> getGraphList() {
-		return graphList;
-	}
-
-	public void setGraphList(ArrayList<String> graphList) {
-		this.graphList = graphList;
 	}
 
 	// ----------------------------------------------------------------------------
@@ -272,7 +274,7 @@ public class ZabbixClient {
 	public void setTokenSession(String tokenSession) {
 		this.tokenSession = tokenSession;
 	}
-
+		
 	public ArrayList<String> getHostList() {
 		return hostList;
 	}
@@ -281,4 +283,19 @@ public class ZabbixClient {
 		this.hostList = hostList;
 	}
 
+	public ArrayList<String> getHostGroupList() {
+		return hostGroupList;
+	}
+
+	public void setHostGroupList(ArrayList<String> hostGroupList) {
+		this.hostGroupList = hostGroupList;
+	}
+
+	public Vector<String> getGraphVector() {
+		return graphVector;
+	}
+
+	public void setGraphVector(Vector<String> graphVector) {
+		this.graphVector = graphVector;
+	}
 }
