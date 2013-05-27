@@ -132,23 +132,23 @@ public class ZabbixClient {
 		return hostGroupResponse;
 	}
 
-	public GraphGetObjectsResponse graphsObject(ArrayList<String> host) {
-		GraphGetObjectsRequest graphGetObjectsRequest = new GraphGetObjectsRequest(
+	public GraphicsGetObjectResponse graphsObject(ArrayList<String> host) {
+		GraphicsGetObjectRequest graphGetObjectsRequest = new GraphicsGetObjectRequest(
 				host);
 		graphGetObjectsRequest.setAuth(tokenSession);
 
-		GraphGetObjectsResponse graphGetObjectsResponse;
+		GraphicsGetObjectResponse graphGetObjectsResponse;
 		System.out.println("GraphGetObject Request");
 		try {
 			graphGetObjectsResponse = send(graphGetObjectsRequest,
-					GraphGetObjectsResponse.class);
+					GraphicsGetObjectResponse.class);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 
 		System.out.println(Arrays.toString(graphGetObjectsResponse.getResult()
 				.toArray()));
-		for (Graph x : graphGetObjectsResponse.getResult()) {
+		for (Graphics x : graphGetObjectsResponse.getResult()) {
 			//graphList.add(x.getName());			
 			graphVector.add(x.getName());
 			//System.out.println(x.getName());
