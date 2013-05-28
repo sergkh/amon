@@ -22,10 +22,9 @@ public class LoginForm implements ActionListener {
 	JPasswordField passwordField;
 	JPanel informationPanel, buttonPanel, errorPanel;
 	JLabel errorLabel;
-	
+
 	ArrayList<String> host = new ArrayList<>();
 
-	
 	public LoginForm() {
 		loginFrame = new JFrame("Login Form");
 		loginFrame.getContentPane().setLayout(new FlowLayout());
@@ -33,13 +32,13 @@ public class LoginForm implements ActionListener {
 		loginFrame.setResizable(false);
 		loginFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-		/* GUI Panels*/
+		/* GUI Panels */
 		informationPanel = new JPanel(new GridLayout(2, 2));
 		buttonPanel = new JPanel();
 		buttonPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
 		errorPanel = new JPanel(new GridLayout(1, 1));
 
-		/*Buttons*/
+		/* Buttons */
 		submitButton = new JButton("Submit");
 		submitButton.addActionListener(this);
 		submitButton
@@ -48,10 +47,10 @@ public class LoginForm implements ActionListener {
 		resetButton.addActionListener(this);
 		resetButton.setToolTipText("Press to clean all field");
 
-		/* Text Font*/
+		/* Text Font */
 		Font errorFont = new Font("Verdana", Font.BOLD, 14);
 		Font simpleFont = new Font("Verdana", Font.PLAIN, 14);
-		
+
 		/* Label */
 		userNameLabel = new JLabel("Login name");
 		userNameLabel.setFont(simpleFont);
@@ -62,7 +61,7 @@ public class LoginForm implements ActionListener {
 		errorLabel.setVisible(false);
 		errorLabel.setForeground(Color.RED);
 
-		/*TextField*/
+		/* TextField */
 		userNameTextField = new JTextField(15);
 		userNameTextField.setText("admin");
 		userNameTextField.setToolTipText("Enter your register user name");
@@ -70,7 +69,7 @@ public class LoginForm implements ActionListener {
 		passwordField.setText("zabbix");
 		passwordField.setToolTipText("Enter your password ");
 
-		/*Add components to Panels */
+		/* Add components to Panels */
 		informationPanel.add(userNameLabel);
 		informationPanel.add(userNameTextField);
 		informationPanel.add(passwordLabel);
@@ -120,14 +119,8 @@ public class LoginForm implements ActionListener {
 			} else {
 				try {
 					client.register(name, password);
-					// This method I must use in GraphicsForm
-					//client.hosting("extend", "name");
-					//host.addAll(client.getHostList());
-					//host.add("Zabbix server");
-					//host.add("Zabbix server");
-					//client.graphsObject(host);
 					if (client.getTokenSession() != null) {
-						//create Gui
+						// create Gui
 						GraphicsForm graphics = new GraphicsForm(name, password);
 						graphics.createGUI();
 						loginFrame.setVisible(false);
@@ -150,7 +143,7 @@ public class LoginForm implements ActionListener {
 			}
 		});
 	}
-	
+
 	public JFrame getLoginFrame() {
 		return loginFrame;
 	}

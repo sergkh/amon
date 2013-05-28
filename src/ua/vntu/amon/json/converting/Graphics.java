@@ -141,7 +141,7 @@ public class Graphics {
 	public String toString() {
         return  "graphid= " + graphid +
                 " name=" + name +
-                " width="+ width +
+                /*" width="+ width +
                 " height="+ height + 
                 " yaxismin=" + yaxismin + 
                 " yaxismax=" + yaxismax + 
@@ -157,8 +157,8 @@ public class Graphics {
                 " ymax_type=" +ymax_type + 
                 " ymin_itemid=" + ymin_itemid +
                 " ymax_itemid=" + ymax_itemid +
-                " flags=" + flags + 
-                '}';
+                " flags=" + flags + */
+                " } ";
     }
 }
 

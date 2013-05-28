@@ -1,8 +1,12 @@
 package ua.vntu.amon.provider.zabbix;
 
+import java.awt.Image;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.Socket;
+import java.net.URL;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -10,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Vector;
 
+import javax.imageio.ImageIO;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.TrustManager;
@@ -23,6 +28,7 @@ import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.conn.ssl.X509HostnameVerifier;
+import org.apache.http.cookie.Cookie;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
@@ -49,9 +55,12 @@ public class ZabbixClient {
 	protected final ObjectMapper mapper;
 
 	private final String url = "http://192.168.56.101/api_jsonrpc.php";
+	private final String baseUrl = "http://192.168.56.101/";
 
 	private ArrayList<String> hostList = new ArrayList<String>();
 	private ArrayList<String> hostGroupList = new ArrayList<String>();
+	private ArrayList<HostEntity> hostEntity = new ArrayList<HostEntity>();
+	private ArrayList<GraphEntity> graphEntity = new ArrayList<>();
 	private Vector<String> graphVector = new Vector<>();
 
 	public ZabbixClient() {
@@ -65,8 +74,6 @@ public class ZabbixClient {
 		mapper.setDeserializationConfig(deserializationConf);
 
 		SerializationConfig serializationConf = mapper.getSerializationConfig();
-		// serializationConf =
-		// serializationConf.withSerializationInclusion(Inclusion.NON_NULL);
 		mapper.setSerializationConfig(serializationConf);
 		httpclient = createHttpClient();
 	}
@@ -131,7 +138,7 @@ public class ZabbixClient {
 		}
 		return hostGroupResponse;
 	}
-	
+
 	public HostResponse host(String output) {
 		HostRequest hostRequest = new HostRequest(output);
 		hostRequest.setAuth(tokenSession);
@@ -144,11 +151,14 @@ public class ZabbixClient {
 			throw new RuntimeException(e);
 		}
 
-		System.out.println(Arrays.toString(hostResponse.getResult()
-				.toArray()));
+		System.out.println(Arrays.toString(hostResponse.getResult().toArray()));
+
 		for (Host x : hostResponse.getResult()) {
+			HostEntity entity = new HostEntity();
+			entity.setHost(x.getHost());
+			entity.setName(x.getName());
 			hostList.add(x.getHost());
-			
+			hostEntity.add(entity);
 		}
 		return hostResponse;
 	}
@@ -169,10 +179,36 @@ public class ZabbixClient {
 
 		System.out.println(Arrays.toString(graphGetObjectsResponse.getResult()
 				.toArray()));
+		graphVector.removeAllElements();
 		for (Graphics x : graphGetObjectsResponse.getResult()) {
-			graphVector.add(x.getName());			
+			graphVector.add(x.getName());
+			GraphEntity grEntity = new GraphEntity();
+			grEntity.setName(x.getName());
+			grEntity.setGraphid(x.getGraphid());
+			graphEntity.add(grEntity);
 		}
 		return graphGetObjectsResponse;
+	}
+
+	public String makeImageUrl(int graphid, int period) {
+		String imageUrl = "";
+		String graphidUrl = "chart2.php?graphid=" + graphid;
+		if (period < 3600) {
+			period = 3600;
+		}
+		String periodUrl = "&period=" + period;
+		imageUrl = baseUrl + graphidUrl + periodUrl;
+		return imageUrl;
+	}
+
+	public Image getGraphImage(String imageUrl) throws IOException {
+		URL url = new URL(imageUrl);
+		HttpURLConnection imageConnection = (HttpURLConnection) url
+				.openConnection();
+		imageConnection.addRequestProperty("Cookie", "zbx_sessionid="
+				+ tokenSession);
+		InputStream is = imageConnection.getInputStream();
+		return ImageIO.read(is);
 	}
 
 	// ----------------------------------------------------------------------------
@@ -243,30 +279,6 @@ public class ZabbixClient {
 		}
 	}
 
-	static class BaseResponse {
-		private int status;
-		private String message;
-
-		public BaseResponse() {
-		}
-
-		public void setStatus(int status) {
-			this.status = status;
-		}
-
-		public void setMessage(String message) {
-			this.message = message;
-		}
-
-		public int getStatus() {
-			return status;
-		}
-
-		public String getMessage() {
-			return message;
-		}
-	}
-
 	public String getTokenSession() {
 		return tokenSession;
 	}
@@ -274,7 +286,7 @@ public class ZabbixClient {
 	public void setTokenSession(String tokenSession) {
 		this.tokenSession = tokenSession;
 	}
-		
+
 	public ArrayList<String> getHostList() {
 		return hostList;
 	}
@@ -297,5 +309,25 @@ public class ZabbixClient {
 
 	public void setGraphVector(Vector<String> graphVector) {
 		this.graphVector = graphVector;
+	}
+
+	public ArrayList<HostEntity> getHostEntity() {
+		return hostEntity;
+	}
+
+	public void setHostEntity(ArrayList<HostEntity> hostEntity) {
+		this.hostEntity = hostEntity;
+	}
+
+	public String getUrl() {
+		return url;
+	}
+
+	public ArrayList<GraphEntity> getGraphEntity() {
+		return graphEntity;
+	}
+
+	public void setGraphEntity(ArrayList<GraphEntity> graphEntity) {
+		this.graphEntity = graphEntity;
 	}
 }
