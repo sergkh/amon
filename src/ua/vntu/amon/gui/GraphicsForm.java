@@ -2,8 +2,10 @@ package ua.vntu.amon.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
@@ -24,6 +26,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
+import javax.swing.RepaintManager;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 
@@ -33,11 +36,13 @@ import ua.vntu.amon.provider.zabbix.ZabbixClient;
 
 public class GraphicsForm implements ActionListener, MenuListener {
 	int periodCoefficient = 3600, period = 3600, graphid;
+	
+	ImagePanel imagePanel;
 	JFrame graphicsFrame;
 	JPanel mainPanel, listGraphPanel, workGraphPanel, infoPanel;
 	JLabel listGraphLabel, infoLabel, graphLabel, showGraphLabel, hostLabel,
 			periodLabel;
-	JLabel resultLabel, graphicShowLabel;
+	JLabel resultLabel, graphicShowLabel, imageLabel;
 	JTextField periodTextField;
 	JRadioButton hourRadioButton, dayRadioButton, weekRadioButton;
 	JMenu fileMenu, helpMenu, getSupportedMenu, logoutMenu, exitMenu;
@@ -75,7 +80,7 @@ public class GraphicsForm implements ActionListener, MenuListener {
 		/* Frame */
 		graphicsFrame = new JFrame("Show Graphics");
 		graphicsFrame.getContentPane().setLayout(new BorderLayout());
-		graphicsFrame.setSize(1000, 500);
+		graphicsFrame.setSize(1200, 500);
 		graphicsFrame.setResizable(true);
 		graphicsFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -204,13 +209,14 @@ public class GraphicsForm implements ActionListener, MenuListener {
 			client.graphsObject(host);
 			graphNameVektor.addAll(client.getGraphVector());
 			System.out.println("Vector after:" + graphNameVektor);
-			System.out.println();
-			//graphComboBox.setSelectedIndex(0);
+			System.out.println();			
 		}
 
 		if (e.getSource() == graphComboBox) {
+			RepaintManager.currentManager(imagePanel);
 			String itemGraph = (String) graphComboBox.getSelectedItem();
 			System.out.println(itemGraph);
+			graphicImage = null;
 			for (GraphEntity x : client.getGraphEntity()) {
 				if (itemGraph == x.getName()) {
 					graphid = x.getGraphid();
@@ -220,14 +226,21 @@ public class GraphicsForm implements ActionListener, MenuListener {
 					System.out.println();
 					try {
 						graphicImage = client.getGraphImage(imageurl);
-						workGraphPanel.add(new JLabel(new ImageIcon(
-								graphicImage)), BorderLayout.CENTER);
+						imagePanel=new ImagePanel(new ImageIcon(graphicImage).getImage());
+						imagePanel.repaint();
+						//Dimension size = new Dimension();
 					} catch (IOException e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					}
 				}
 			}
+
+			// imageLabel = new JLabel(new ImageIcon(graphicImage));
+			// workGraphPanel.add(arg0)
+			// workGraphPanel.add(imageLabel, BorderLayout.CENTER);
+			// workGraphPanel.repaint();
+			workGraphPanel.add(imagePanel, BorderLayout.CENTER);
 		}
 
 		if (e.getSource() == hourRadioButton) {
@@ -248,6 +261,8 @@ public class GraphicsForm implements ActionListener, MenuListener {
 		}
 	}
 
+	
+
 	public void menuSelected(MenuEvent e) {
 		if (e.getSource() == exitMenu)
 			System.exit(0);
@@ -262,7 +277,6 @@ public class GraphicsForm implements ActionListener, MenuListener {
 	public void menuDeselected(MenuEvent e) {
 		// TODO Auto-generated method stub
 	}
-
 	/*
 	 * public static void main(String args[]) throws Exception {
 	 * client.register(login, password); GraphicsForm graphicForm =new
@@ -270,5 +284,25 @@ public class GraphicsForm implements ActionListener, MenuListener {
 	 * 
 	 * }
 	 */
+}
 
+class ImagePanel extends JPanel {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private Image img;
+
+	public ImagePanel(Image img) {
+		this.img = img;
+		Dimension size = new Dimension(img.getWidth(null), img.getHeight(null));
+		setPreferredSize(size);
+		setMinimumSize(size);
+		setSize(size);
+		repaint();
+	}
+
+	public void paintComponent(Graphics g) {
+		g.drawImage(img, 0, 0, null);
+	}
 }
