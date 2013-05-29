@@ -2,7 +2,6 @@ package ua.vntu.amon.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -11,22 +10,10 @@ import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Vector;
 
-import javax.swing.BorderFactory;
-import javax.swing.ButtonGroup;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JTextField;
-import javax.swing.RepaintManager;
+import javax.swing.*;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 
@@ -36,11 +23,9 @@ import ua.vntu.amon.provider.zabbix.ZabbixClient;
 
 public class GraphicsForm implements ActionListener, MenuListener {
 	int periodCoefficient = 3600, period = 3600, graphid;
-	
-	ImagePanel imagePanel;
-	JFrame graphicsFrame;
+
 	JPanel mainPanel, listGraphPanel, workGraphPanel, infoPanel;
-	JLabel listGraphLabel, infoLabel, graphLabel, showGraphLabel, hostLabel,
+	JLabel listGraphLabel, showGraphLabel, hostLabel,
 			periodLabel;
 	JLabel resultLabel, graphicShowLabel, imageLabel;
 	JTextField periodTextField;
@@ -49,22 +34,18 @@ public class GraphicsForm implements ActionListener, MenuListener {
 	JButton showButton, sendButton;
 	JComboBox<String> graphComboBox, hostComboBox;
 
-	ArrayList<String> host = new ArrayList<>();
-	Vector<String> hostNameVektor = new Vector<>();
-	Vector<String> graphNameVektor = new Vector<>();
+	Vector<String> hostNameVector = new Vector<>();
 
-	Image graphicImage;
-	static ZabbixClient client = new ZabbixClient();
+	ZabbixClient client = new ZabbixClient();
 
-	static String login;
-	static String password;
+	String login;
+	String password;
 
-	public GraphicsForm() {
-	}
+    ImagePanel imagePanel = new ImagePanel();
 
 	public GraphicsForm(String name, String password) {
-		GraphicsForm.login = name;
-		GraphicsForm.password = password;
+		this.login = name;
+        this.password = password;
 	}
 
 	public void createGUI() {
@@ -78,7 +59,7 @@ public class GraphicsForm implements ActionListener, MenuListener {
 		System.out.println();
 
 		/* Frame */
-		graphicsFrame = new JFrame("Show Graphics");
+        JFrame graphicsFrame = new JFrame("Show Graphics");
 		graphicsFrame.getContentPane().setLayout(new BorderLayout());
 		graphicsFrame.setSize(1200, 500);
 		graphicsFrame.setResizable(true);
@@ -123,8 +104,7 @@ public class GraphicsForm implements ActionListener, MenuListener {
 
 		/* Labels */
 		listGraphLabel = new JLabel("Graphics name");
-		infoLabel = new JLabel(" @Derman Yaroslav ");
-		graphLabel = new JLabel("Show Graphics", 0);
+
 		showGraphLabel = new JLabel("Grapid Name");
 		resultLabel = new JLabel("result");
 		periodLabel = new JLabel("Enter period");
@@ -136,12 +116,31 @@ public class GraphicsForm implements ActionListener, MenuListener {
 
 		/* ComboBox */
 		for (HostEntity x : client.getHostEntity()) {
-			hostNameVektor.add(x.getHost());
+			hostNameVector.add(x.getHost());
 		}
-		hostComboBox = new JComboBox<String>(hostNameVektor);
-		hostComboBox.addActionListener(this);
-		graphComboBox = new JComboBox<String>(graphNameVektor);
-		graphComboBox.addActionListener(this);
+
+		hostComboBox = new JComboBox<String>(hostNameVector);
+		hostComboBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                onHostChanged((String) hostComboBox.getSelectedItem());
+            }
+        });
+
+		graphComboBox = new JComboBox<String>();
+		graphComboBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                onGraphChanged((String) graphComboBox.getSelectedItem());
+            }
+        });
+
+
+        // autoselect 1-st host
+        if(!hostNameVector.isEmpty()) {
+            hostComboBox.setSelectedIndex(0);
+        }
+
 
 		/* ActionListener */
 		sendButton.addActionListener(this);
@@ -179,11 +178,12 @@ public class GraphicsForm implements ActionListener, MenuListener {
 		workGraphPanel = new JPanel();
 		workGraphPanel.setLayout(new BorderLayout());
 		workGraphPanel.add(periodPanel, BorderLayout.NORTH);
+        workGraphPanel.add(imagePanel, BorderLayout.CENTER);
 
 		/* Panel with information about author */
 		infoPanel = new JPanel();
 		infoPanel.setLayout(new BorderLayout());
-		infoPanel.add(infoLabel, BorderLayout.EAST);
+		infoPanel.add(new JLabel(" @Derman Yaroslav "), BorderLayout.EAST);
 
 		/* Add elements to Main PAnel */
 		mainPanel.add(listGraphPanel, BorderLayout.WEST);
@@ -196,53 +196,47 @@ public class GraphicsForm implements ActionListener, MenuListener {
 		graphicsFrame.setVisible(true);
 	}
 
+
+    private void onHostChanged(String host) {
+        client.graphsObject(Arrays.asList(host));
+
+        Vector<String> graphs = client.getGraphVector();
+        graphComboBox.setModel(new DefaultComboBoxModel<>(graphs));
+
+        // autoselect first item
+        if(graphs != null && !graphs.isEmpty()) {
+            graphComboBox.setSelectedIndex(0);
+        }
+    }
+
+    private void onGraphChanged(String graphName) {
+        GraphEntity graphObj = null;
+
+        for (GraphEntity ge : client.getGraphEntity()) {
+            if (graphName.equals(ge.getName())) {
+                graphObj = ge;
+                break;
+            }
+        }
+
+        if(graphObj == null) {
+            throw new IllegalStateException("Graph object is not found for name: " + graphName);
+        }
+
+        try {
+            String imageurl = client.makeImageUrl(graphObj.getGraphid(), period);
+            imagePanel.setImage(client.getGraphImage(imageurl));
+
+            //Dimension size = new Dimension();
+        } catch (IOException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
+
+    }
+
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == hostComboBox) {
-			host.clear();
-			System.out.println("List before:" + host);
-			graphNameVektor.removeAllElements();
-			System.out.println("Vector before :" + graphNameVektor);
-			String item = (String) hostComboBox.getSelectedItem();
-			host.add(item);
-			System.out.println("List after:" + host);
-			client.graphsObject(host);
-			graphNameVektor.addAll(client.getGraphVector());
-			System.out.println("Vector after:" + graphNameVektor);
-			System.out.println();			
-		}
-
-		if (e.getSource() == graphComboBox) {
-			RepaintManager.currentManager(imagePanel);
-			String itemGraph = (String) graphComboBox.getSelectedItem();
-			System.out.println(itemGraph);
-			graphicImage = null;
-			for (GraphEntity x : client.getGraphEntity()) {
-				if (itemGraph == x.getName()) {
-					graphid = x.getGraphid();
-					System.out.println(graphid);
-					String imageurl = client.makeImageUrl(graphid, period);
-					System.out.println(imageurl);
-					System.out.println();
-					try {
-						graphicImage = client.getGraphImage(imageurl);
-						imagePanel=new ImagePanel(new ImageIcon(graphicImage).getImage());
-						imagePanel.repaint();
-						//Dimension size = new Dimension();
-					} catch (IOException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-				}
-			}
-
-			// imageLabel = new JLabel(new ImageIcon(graphicImage));
-			// workGraphPanel.add(arg0)
-			// workGraphPanel.add(imageLabel, BorderLayout.CENTER);
-			// workGraphPanel.repaint();
-			workGraphPanel.add(imagePanel, BorderLayout.CENTER);
-		}
-
 		if (e.getSource() == hourRadioButton) {
 			periodCoefficient = 3600;
 		}
@@ -287,22 +281,28 @@ public class GraphicsForm implements ActionListener, MenuListener {
 }
 
 class ImagePanel extends JPanel {
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 1L;
 	private Image img;
 
-	public ImagePanel(Image img) {
-		this.img = img;
-		Dimension size = new Dimension(img.getWidth(null), img.getHeight(null));
+	public ImagePanel() {
+		/*this.img = img;*/
+		/*Dimension size = new Dimension(img.getWidth(null), img.getHeight(null));
 		setPreferredSize(size);
 		setMinimumSize(size);
 		setSize(size);
-		repaint();
+		repaint();*/
 	}
 
-	public void paintComponent(Graphics g) {
-		g.drawImage(img, 0, 0, null);
+    void setImage(Image img) {
+        this.img = img;
+        //invalidate();
+        repaint();
+    }
+
+    public void paintComponent(Graphics g) {
+        if(img != null) {
+		    g.drawImage(img, 0, 0, null);
+        }
 	}
 }
