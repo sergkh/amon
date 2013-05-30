@@ -36,7 +36,7 @@ import ua.vntu.amon.provider.zabbix.ZabbixClient;
 
 public class GraphicsForm implements ActionListener, MenuListener {
 	int periodCoefficient = 3600, period = 3600, graphid;
-	
+
 	ImagePanel imagePanel;
 	JFrame graphicsFrame;
 	JPanel mainPanel, listGraphPanel, workGraphPanel, infoPanel;
@@ -149,8 +149,7 @@ public class GraphicsForm implements ActionListener, MenuListener {
 		dayRadioButton.addActionListener(this);
 		weekRadioButton.addActionListener(this);
 
-		/* PANEL */
-
+		/* PANELS */
 		/* Main PAnel */
 		mainPanel = new JPanel();
 		mainPanel.setLayout(new BorderLayout());
@@ -209,7 +208,7 @@ public class GraphicsForm implements ActionListener, MenuListener {
 			client.graphsObject(host);
 			graphNameVektor.addAll(client.getGraphVector());
 			System.out.println("Vector after:" + graphNameVektor);
-			System.out.println();			
+			System.out.println();
 		}
 
 		if (e.getSource() == graphComboBox) {
@@ -226,9 +225,10 @@ public class GraphicsForm implements ActionListener, MenuListener {
 					System.out.println();
 					try {
 						graphicImage = client.getGraphImage(imageurl);
-						imagePanel=new ImagePanel(new ImageIcon(graphicImage).getImage());
+						imagePanel = new ImagePanel(
+								new ImageIcon(graphicImage).getImage());
 						imagePanel.repaint();
-						//Dimension size = new Dimension();
+						// Dimension size = new Dimension();
 					} catch (IOException e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
@@ -261,8 +261,6 @@ public class GraphicsForm implements ActionListener, MenuListener {
 		}
 	}
 
-	
-
 	public void menuSelected(MenuEvent e) {
 		if (e.getSource() == exitMenu)
 			System.exit(0);
@@ -277,13 +275,6 @@ public class GraphicsForm implements ActionListener, MenuListener {
 	public void menuDeselected(MenuEvent e) {
 		// TODO Auto-generated method stub
 	}
-	/*
-	 * public static void main(String args[]) throws Exception {
-	 * client.register(login, password); GraphicsForm graphicForm =new
-	 * GraphicsForm(); graphicForm.createGUI();
-	 * 
-	 * }
-	 */
 }
 
 class ImagePanel extends JPanel {
