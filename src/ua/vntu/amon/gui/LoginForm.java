@@ -82,6 +82,8 @@ public class LoginForm implements ActionListener {
 		loginFrame.getContentPane().add(informationPanel);
 		loginFrame.getContentPane().add(buttonPanel);
 
+        loginFrame.getRootPane().setDefaultButton(submitButton);
+
 		loginFrame.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent we) {
 				value = JOptionPane.showConfirmDialog(null,

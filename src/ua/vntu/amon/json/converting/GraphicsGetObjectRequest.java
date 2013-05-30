@@ -1,21 +1,21 @@
 package ua.vntu.amon.json.converting;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class GraphicsGetObjectRequest extends BaseRequest{
 
 	
-	private Map<String, ArrayList<String> > params = new HashMap<String, ArrayList<String>>();
+	private Map<String, List<String>> params = new HashMap<String, List<String>>();
 	private String auth;
 	private int id;
 	
-	public Map<String, ArrayList<String>> getParams() {
+	public Map<String, List<String>> getParams() {
 		return params;
 	}
 
-	public void setParams(Map<String, ArrayList<String>> params) {
+	public void setParams(Map<String, List<String>> params) {
 		this.params = params;
 	}
 
@@ -35,7 +35,7 @@ public class GraphicsGetObjectRequest extends BaseRequest{
 		this.id = id;
 	}
 
-	public GraphicsGetObjectRequest(ArrayList<String> host) {
+	public GraphicsGetObjectRequest(List<String> host) {
 		super("graph.getobjects");
 		params.put("host", host);
 		// TODO Auto-generated constructor stub

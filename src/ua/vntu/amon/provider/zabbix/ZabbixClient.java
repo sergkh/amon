@@ -12,6 +12,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Vector;
 
 import javax.imageio.ImageIO;
@@ -47,15 +48,17 @@ public class ZabbixClient {
 
 	private static final int PROCESSORS = 20;
 
-	private final int CONNECTION_TIMEOUT = 30000;
+	private static final int CONNECTION_TIMEOUT = 30000;
 
 	public String tokenSession;
 
 	protected final HttpClient httpclient;
 	protected final ObjectMapper mapper;
 
-	private final String url = "http://192.168.56.101/api_jsonrpc.php";
-	private final String baseUrl = "http://192.168.56.101/";
+    private final String baseUrl = "http://192.168.56.101/";
+
+	private final String url = baseUrl + "api_jsonrpc.php";
+
 
 	private ArrayList<String> hostList = new ArrayList<String>();
 	private ArrayList<String> hostGroupList = new ArrayList<String>();
@@ -163,9 +166,8 @@ public class ZabbixClient {
 		return hostResponse;
 	}
 
-	public GraphicsGetObjectResponse graphsObject(ArrayList<String> host) {
-		GraphicsGetObjectRequest graphGetObjectsRequest = new GraphicsGetObjectRequest(
-				host);
+	public GraphicsGetObjectResponse graphsObject(List<String> host) {
+		GraphicsGetObjectRequest graphGetObjectsRequest = new GraphicsGetObjectRequest(host);
 		graphGetObjectsRequest.setAuth(tokenSession);
 
 		GraphicsGetObjectResponse graphGetObjectsResponse;
