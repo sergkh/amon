@@ -24,6 +24,9 @@ public class LoginForm implements ActionListener {
 	JLabel errorLabel;
 
 	ArrayList<String> host = new ArrayList<>();
+	
+	String name, password;
+	int value;
 
 	public LoginForm() {
 		loginFrame = new JFrame("Login Form");
@@ -162,8 +165,7 @@ public class LoginForm implements ActionListener {
 		this.errorLabel = errorLabel;
 	}
 
-	String name, password;
-	int value;
+	
 
 	public String getName() {
 		return name;
