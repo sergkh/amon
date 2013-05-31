@@ -29,7 +29,6 @@ import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.conn.ssl.X509HostnameVerifier;
-import org.apache.http.cookie.Cookie;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
@@ -212,6 +211,8 @@ public class ZabbixClient {
 		InputStream is = imageConnection.getInputStream();
 		return ImageIO.read(is);
 	}
+	
+	
 
 	// ----------------------------------------------------------------------------
 	private HttpClient createHttpClient() {
