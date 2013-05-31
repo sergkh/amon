@@ -126,7 +126,7 @@ public class LoginForm implements ActionListener {
 					client.register(name, password);
 					if (client.getTokenSession() != null) {
 						// create Gui
-						GraphicsForm graphics = new GraphicsForm(name, password);
+						GraphicsFrame graphics = new GraphicsFrame(name, password);
 						graphics.createGUI();
 						loginFrame.setVisible(false);
 					} else {
