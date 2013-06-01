@@ -286,7 +286,7 @@ public class GraphicsFrame implements ActionListener, MenuListener {
 	}
 }
 
-class ImagePanel extends JPanel {
+class ImagePanel extends JComponent {
 
 	private static final long serialVersionUID = 1L;
 	private Image img;
@@ -303,7 +303,7 @@ class ImagePanel extends JPanel {
 		repaint();
 	}
 
-	public void paintComponent(Graphics g) {
+	public void paint(Graphics g) {
 		if (img != null) {
 			g.drawImage(img, 0, 0, this);
 		}

@@ -105,6 +105,7 @@ public class ZabbixClient {
 		return mapper.readValue(jsonOut.toByteArray(), clazz);
 	}
 
+	@SuppressWarnings("unchecked")
 	public Object register(String login, String password) {
 		BaseResult<String> loginResponse;
 		System.out.println("Login Request");
