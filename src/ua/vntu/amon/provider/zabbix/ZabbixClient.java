@@ -11,7 +11,6 @@ import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
@@ -37,9 +36,19 @@ import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 
-import ua.vntu.amon.json.converting.*;
-
-//import ua.vntu.amon.json.converting.User;
+import ua.vntu.amon.json.entity.BaseResult;
+import ua.vntu.amon.json.entity.GraphEntity;
+import ua.vntu.amon.json.entity.Graphics;
+import ua.vntu.amon.json.entity.Host;
+import ua.vntu.amon.json.entity.HostEntity;
+import ua.vntu.amon.json.entity.HostGroup;
+import ua.vntu.amon.json.request.GraphicsGetObjectRequest;
+import ua.vntu.amon.json.request.HostGroupRequest;
+import ua.vntu.amon.json.request.HostRequest;
+import ua.vntu.amon.json.request.LoginRequest;
+import ua.vntu.amon.json.response.GraphicsGetObjectResponse;
+import ua.vntu.amon.json.response.HostGroupResponse;
+import ua.vntu.amon.json.response.HostResponse;
 
 public class ZabbixClient {
 
@@ -49,20 +58,18 @@ public class ZabbixClient {
 
 	private static final int CONNECTION_TIMEOUT = 30000;
 
-	public String tokenSession;
+	private String tokenSession;
 
 	protected final HttpClient httpclient;
 	protected final ObjectMapper mapper;
 
-    private final String baseUrl = "http://192.168.56.101/";
-
-	private final String url = baseUrl + "api_jsonrpc.php";
-
+	private String url;
 
 	private ArrayList<String> hostList = new ArrayList<String>();
 	private ArrayList<String> hostGroupList = new ArrayList<String>();
 	private ArrayList<HostEntity> hostEntity = new ArrayList<HostEntity>();
 	private ArrayList<GraphEntity> graphEntity = new ArrayList<>();
+	private List<String> graphList=new ArrayList<String>();
 	private Vector<String> graphVector = new Vector<>();
 
 	public ZabbixClient() {
@@ -108,7 +115,7 @@ public class ZabbixClient {
 	@SuppressWarnings("unchecked")
 	public Object register(String login, String password) {
 		BaseResult<String> loginResponse;
-		System.out.println("Login Request");
+		System.out.println("Login Request"); 
 		try {
 			loginResponse = send(new LoginRequest(login, password),
 					BaseResult.class);
@@ -117,7 +124,7 @@ public class ZabbixClient {
 		}
 
 		tokenSession = loginResponse.getResult();
-		System.out.println(tokenSession);
+		/* System.out.println(tokenSession); */
 		return loginResponse;
 	}
 
@@ -127,15 +134,17 @@ public class ZabbixClient {
 		hostGroupRequest.setAuth(tokenSession);
 
 		HostGroupResponse hostGroupResponse;
-		System.out.println("HostGroup Request");
+		/* System.out.println("HostGroup Request"); */
 		try {
 			hostGroupResponse = send(hostGroupRequest, HostGroupResponse.class);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 
-		System.out.println(Arrays.toString(hostGroupResponse.getResult()
-				.toArray()));
+		/*
+		 * System.out.println(Arrays.toString(hostGroupResponse.getResult()
+		 * .toArray()));
+		 */
 		for (HostGroup x : hostGroupResponse.getResult()) {
 			hostGroupList.add(x.getName());
 		}
@@ -147,14 +156,17 @@ public class ZabbixClient {
 		hostRequest.setAuth(tokenSession);
 
 		HostResponse hostResponse;
-		System.out.println("Host Request");
+		/* System.out.println("Host Request"); */
 		try {
 			hostResponse = send(hostRequest, HostResponse.class);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 
-		System.out.println(Arrays.toString(hostResponse.getResult().toArray()));
+		/*
+		 * System.out.println(Arrays.toString(hostResponse.getResult().toArray())
+		 * );
+		 */
 
 		for (Host x : hostResponse.getResult()) {
 			HostEntity entity = new HostEntity();
@@ -167,11 +179,12 @@ public class ZabbixClient {
 	}
 
 	public GraphicsGetObjectResponse graphsObject(List<String> host) {
-		GraphicsGetObjectRequest graphGetObjectsRequest = new GraphicsGetObjectRequest(host);
+		GraphicsGetObjectRequest graphGetObjectsRequest = new GraphicsGetObjectRequest(
+				host);
 		graphGetObjectsRequest.setAuth(tokenSession);
 
 		GraphicsGetObjectResponse graphGetObjectsResponse;
-		System.out.println("GraphGetObject Request");
+		/* System.out.println("GraphGetObject Request"); */
 		try {
 			graphGetObjectsResponse = send(graphGetObjectsRequest,
 					GraphicsGetObjectResponse.class);
@@ -179,11 +192,16 @@ public class ZabbixClient {
 			throw new RuntimeException(e);
 		}
 
-		System.out.println(Arrays.toString(graphGetObjectsResponse.getResult()
-				.toArray()));
+		/*
+		 * System.out.println(Arrays.toString(graphGetObjectsResponse.getResult()
+		 * .toArray()));
+		 */
+		graphList.clear();
 		graphVector.removeAllElements();
+		graphEntity.clear();
 		for (Graphics x : graphGetObjectsResponse.getResult()) {
 			graphVector.add(x.getName());
+			graphList.add(x.getName());
 			GraphEntity grEntity = new GraphEntity();
 			grEntity.setName(x.getName());
 			grEntity.setGraphid(x.getGraphid());
@@ -192,9 +210,18 @@ public class ZabbixClient {
 		return graphGetObjectsResponse;
 	}
 
+	public List<String> getGraphList() {
+		return graphList;
+	}
+
+	public void setGraphList(List<String> graphList) {
+		this.graphList = graphList;
+	}
+
 	public String makeImageUrl(int graphid, int period) {
 		String imageUrl = "";
-		String graphidUrl = "chart2.php?graphid=" + graphid;
+		String baseUrl=url.split("/api_jsonrpc.php")[0];
+		String graphidUrl = "/chart2.php?graphid=" + graphid;
 		if (period < 3600) {
 			period = 3600;
 		}
@@ -212,8 +239,6 @@ public class ZabbixClient {
 		InputStream is = imageConnection.getInputStream();
 		return ImageIO.read(is);
 	}
-	
-	
 
 	// ----------------------------------------------------------------------------
 	private HttpClient createHttpClient() {
@@ -242,12 +267,6 @@ public class ZabbixClient {
 	}
 
 	public static void main(String[] args) throws Exception {
-		/*
-		 * ZabbixClient client = new ZabbixClient(); LoginForm login = new
-		 * LoginForm(); client.register(login.getName(), login.getPassword());
-		 * client.register2("extend", "name");
-		 */
-
 	}
 
 	static class DumbTrustManager implements X509TrustManager {
@@ -323,10 +342,6 @@ public class ZabbixClient {
 		this.hostEntity = hostEntity;
 	}
 
-	public String getUrl() {
-		return url;
-	}
-
 	public ArrayList<GraphEntity> getGraphEntity() {
 		return graphEntity;
 	}
@@ -334,4 +349,12 @@ public class ZabbixClient {
 	public void setGraphEntity(ArrayList<GraphEntity> graphEntity) {
 		this.graphEntity = graphEntity;
 	}
+
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
+	}		
 }
