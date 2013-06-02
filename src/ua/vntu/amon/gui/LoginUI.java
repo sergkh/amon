@@ -4,12 +4,15 @@ import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
 import java.util.ArrayList;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 
 import ua.vntu.amon.provider.zabbix.ZabbixClient;
@@ -107,6 +110,15 @@ public class LoginUI extends JFrame {
 						}
 					}
 				});
+		
+		try {
+			Image img = ImageIO.read(ClassLoader.class.getResourceAsStream("/resources/login_icom.gif"));
+			submitButton.setIcon(new ImageIcon(img));
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
 
 		JButton resetButton = createButton("Reset",
 				"Press to clean all fields", simpleFont, new ActionListener() {
