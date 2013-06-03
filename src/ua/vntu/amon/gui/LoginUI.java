@@ -112,7 +112,7 @@ public class LoginUI extends JFrame {
 				});
 		
 		try {
-			Image img = ImageIO.read(ClassLoader.class.getResourceAsStream("/resources/login_icom.gif"));
+			Image img = ImageIO.read(getClass().getResourceAsStream("/resources/login_icon.gif"));
 			submitButton.setIcon(new ImageIcon(img));
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
