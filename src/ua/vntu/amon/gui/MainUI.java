@@ -6,23 +6,29 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.LayoutManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Vector;
 
+import javax.imageio.ImageIO;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
@@ -39,7 +45,7 @@ public class MainUI extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 
-	int periodCoefficient = 3600, period = 1, graphid;
+	int periodCoefficient = 3600, period = 1, timerDelay = 3000;
 	JTextField periodTextField;
 	Timer updateImageTimer;
 	Vector<String> hostNameVector = new Vector<>();
@@ -58,7 +64,7 @@ public class MainUI extends JFrame {
 
 		Font simpleFont = new Font("Verdana", Font.PLAIN, 14);
 
-		updateImageTimer = new Timer(3000, new ActionListener() {
+		updateImageTimer = new Timer(timerDelay, new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
@@ -88,29 +94,62 @@ public class MainUI extends JFrame {
 		getContentPane().setLayout(new BorderLayout());
 		setSize(1300, 650);
 		setResizable(true);
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
 		/* Menu */
 		JMenuBar menuBar = new JMenuBar();
-		createMenu(menuBar, "Help", " Help ... ", simpleFont, null);
-		createMenu(menuBar, "Logout", " Logout ... ", simpleFont, null);
-		createMenu(menuBar, "Exit", " Exit ... ", simpleFont,
+		createMenu(menuBar, "Help", null, simpleFont, new MenuListener() {
+
+			@Override
+			public void menuSelected(MenuEvent e) {
+				// TODO Auto-generated method stub
+				//
+				JOptionPane
+						.showMessageDialog(
+								getParent(),
+								"  This is Network Monitorring Program, which\n"
+										+ "help to follow for your host in network .\n"
+										+ "  You can choose available Host, with proposed\n"
+										+ "graphics.\n"
+										+ "  Enter a value for the Period during which you\n"
+										+ "want to observe the graphics.",
+								"Help", JOptionPane.INFORMATION_MESSAGE);
+			}
+
+			@Override
+			public void menuDeselected(MenuEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void menuCanceled(MenuEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+		});
+		createMenu(menuBar, "Logout", " Logout ... ", simpleFont,
 				new MenuListener() {
-					@Override
-					public void menuSelected(MenuEvent e) {
-						System.exit(0);
-					}
 
 					@Override
-					public void menuCanceled(MenuEvent e) {
-						// TODO Auto-generated method stub
+					public void menuSelected(MenuEvent e) {
+						new LoginUI();
+						setVisible(false);
 					}
 
 					@Override
 					public void menuDeselected(MenuEvent e) {
 						// TODO Auto-generated method stub
+
+					}
+
+					@Override
+					public void menuCanceled(MenuEvent e) {
+						// TODO Auto-generated method stub
+
 					}
 				});
+
 		// ******************************************************************
 		ButtonGroup periodGroup = new ButtonGroup();
 
@@ -138,11 +177,10 @@ public class MainUI extends JFrame {
 
 		createLabel(periodPanel, "Enter period", "Period of Graphics",
 				simpleFont);
-		periodPanel.add(periodTextField);
 
-		createRadioButton(periodPanel, periodGroup, "Hour",
-				"Press to show graphics for the last _ hours", simpleFont,
-				true, new ActionListener() {
+		JRadioButton hourRadioButton = createRadioButton(periodGroup, "Hour",
+				"Press to show graphics for the last _ hours", "hour.png",
+				simpleFont, true, new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent arg0) {
 						// TODO Auto-generated method stub
@@ -151,9 +189,9 @@ public class MainUI extends JFrame {
 					}
 				});
 
-		createRadioButton(periodPanel, periodGroup, "Day",
-				"Press to show graphics for the last _ days", simpleFont,
-				false, new ActionListener() {
+		JRadioButton dayRadioButton = createRadioButton(periodGroup, "Day",
+				"Press to show graphics for the last _ days", "day.png",
+				simpleFont, false, new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent arg0) {
 						// TODO Auto-generated method stub
@@ -162,9 +200,9 @@ public class MainUI extends JFrame {
 					}
 				});
 
-		createRadioButton(periodPanel, periodGroup, "Week",
-				"Press to show graphics for the last _ weeks", simpleFont,
-				false, new ActionListener() {
+		JRadioButton weekRadioButton = createRadioButton(periodGroup, "Week",
+				"Press to show graphics for the last _ weeks", "week.png",
+				simpleFont, false, new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent arg0) {
 						// TODO Auto-generated method stub
@@ -172,6 +210,11 @@ public class MainUI extends JFrame {
 						checkPeriod();
 					}
 				});
+		periodPanel.add(periodTextField);
+		periodPanel.add(hourRadioButton);
+		periodPanel.add(dayRadioButton);
+		periodPanel.add(weekRadioButton);
+
 		/* Ckeck box */
 		final JCheckBox autoUpdateCheckBox = new JCheckBox("Auto Update");
 		autoUpdateCheckBox.setSelected(true);
@@ -183,6 +226,7 @@ public class MainUI extends JFrame {
 				// TODO Auto-generated method stub
 				if (!autoUpdateCheckBox.isSelected()) {
 					updateImageTimer.stop();
+
 				} else {
 					updateImageTimer.restart();
 				}
@@ -205,7 +249,6 @@ public class MainUI extends JFrame {
 		});
 
 		graphComboBox = new FilterComboBox(client.getGraphList());
-		// graphComboBox = new JComboBox<String>();
 		graphComboBox.setEditable(true);
 		graphComboBox.setFont(simpleFont);
 		graphComboBox.addActionListener(new ActionListener() {
@@ -230,23 +273,24 @@ public class MainUI extends JFrame {
 		listGraphPanel.add(graphComboBox);
 		listGraphPanel.add(autoUpdateCheckBox);
 
+		addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent we) {
+				int value = JOptionPane.showConfirmDialog(null,
+						"Are you sure you want to close Graphics Form?",
+						"Close", JOptionPane.YES_NO_OPTION,
+						JOptionPane.ERROR_MESSAGE);
+				if (value == 0) {
+					System.exit(0);
+				} else {
+					setVisible(true);
+				}
+
+			}
+		});
+
 		/* Add elements to Frame */
 		setJMenuBar(menuBar);
 		setVisible(true);
-	}
-
-	private void checkPeriod() {
-		period = Integer.parseInt(periodTextField.getText());
-		period *= periodCoefficient;
-		if (period > 63072000) {
-			period = 63072000;
-			period = period / periodCoefficient;
-			String tooltip = "Value must be between 1 and "
-					+ Integer.toString(period);
-			periodTextField.setText(Integer.toString(period));
-			periodTextField.setToolTipText(tooltip);
-			updateImageTimer.restart();
-		}
 	}
 
 	private void onHostChanged(String host) {
@@ -288,6 +332,20 @@ public class MainUI extends JFrame {
 		}
 	}
 
+	private void checkPeriod() {
+		period = Integer.parseInt(periodTextField.getText());
+		period *= periodCoefficient;
+		if (period > 63072000) {
+			period = 63072000;
+			period = period / periodCoefficient;
+			String tooltip = "Value must be between 1 and "
+					+ Integer.toString(period);
+			periodTextField.setText(Integer.toString(period));
+			periodTextField.setToolTipText(tooltip);
+		}
+		updateImageTimer.restart();
+	}
+
 	private JPanel createPanel(Container c, String layout, int width,
 			int height, LayoutManager layoutPanel) {
 		JPanel panel = new JPanel();
@@ -306,16 +364,27 @@ public class MainUI extends JFrame {
 		menu.addMenuListener(listener);
 	}
 
-	private void createRadioButton(Container c, ButtonGroup group,
-			String title, String toolTip, Font font, Boolean selected,
+	private JRadioButton createRadioButton(ButtonGroup group, String title,
+			String toolTip, String path, Font font, Boolean selected,
 			ActionListener listener) {
 		JRadioButton button = new JRadioButton(title);
 		group.add(button);
-		c.add(button);
 		button.setToolTipText(toolTip);
 		button.setFont(font);
 		button.setSelected(selected);
 		button.addActionListener(listener);
+		if (path.equals("")) {
+			return button;
+		}
+		try {
+			Image img = ImageIO.read(getClass().getResourceAsStream(
+					"/resources/" + path));
+			button.setIcon(new ImageIcon(img));
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		return button;
 	}
 
 	protected void createLabel(Container c, String title, String toolTip,

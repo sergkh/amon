@@ -69,7 +69,7 @@ public class ZabbixClient {
 	private ArrayList<String> hostGroupList = new ArrayList<String>();
 	private ArrayList<HostEntity> hostEntity = new ArrayList<HostEntity>();
 	private ArrayList<GraphEntity> graphEntity = new ArrayList<>();
-	private List<String> graphList=new ArrayList<String>();
+	private List<String> graphList = new ArrayList<String>();
 	private Vector<String> graphVector = new Vector<>();
 
 	public ZabbixClient() {
@@ -115,7 +115,7 @@ public class ZabbixClient {
 	@SuppressWarnings("unchecked")
 	public Object register(String login, String password) {
 		BaseResult<String> loginResponse;
-		System.out.println("Login Request"); 
+		System.out.println("Login Request");
 		try {
 			loginResponse = send(new LoginRequest(login, password),
 					BaseResult.class);
@@ -220,7 +220,7 @@ public class ZabbixClient {
 
 	public String makeImageUrl(int graphid, int period) {
 		String imageUrl = "";
-		String baseUrl=url.split("/api_jsonrpc.php")[0];
+		String baseUrl = url.split("/api_jsonrpc.php")[0];
 		String graphidUrl = "/chart2.php?graphid=" + graphid;
 		if (period < 3600) {
 			period = 3600;
@@ -356,5 +356,5 @@ public class ZabbixClient {
 
 	public void setUrl(String url) {
 		this.url = url;
-	}		
+	}
 }

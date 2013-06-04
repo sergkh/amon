@@ -13,7 +13,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 import ua.vntu.amon.provider.zabbix.ZabbixClient;
 
@@ -32,11 +40,11 @@ public class LoginUI extends JFrame {
 		getContentPane().setLayout(new FlowLayout());
 		setSize(500, 250);
 		setResizable(false);
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
 		/* GUI Panels */
 		JPanel informationPanel = new JPanel(new GridLayout(3, 2));
-		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		JPanel buttonPanel = new JPanel(new GridLayout(1, 2));
 		JPanel errorPanel = new JPanel(new GridLayout(1, 1));
 
 		/* Text Font */
@@ -44,13 +52,15 @@ public class LoginUI extends JFrame {
 		Font simpleFont = new Font("Verdana", Font.PLAIN, 14);
 
 		/* Label */
-		final JLabel serverIpLabel = createLabel("Server Ip adress",
+		final JLabel serverIpLabel = createLabel("Server Ip Address", "IP.jpg",
 				simpleFont, true);
-		final JLabel userNameLabel = createLabel("Login name", simpleFont, true);
-		final JLabel passwordLabel = createLabel("Password", simpleFont, true);
-		final JLabel errorLabel = createLabel("", errorFont, false);
+		final JLabel userNameLabel = createLabel("Login Name",
+				"login_name.png", simpleFont, true);
+		final JLabel passwordLabel = createLabel("Password", "password.png",
+				simpleFont, true);
+		final JLabel errorLabel = createLabel("", "network-error.png",
+				errorFont, false);
 		errorLabel.setForeground(Color.RED);
-
 		/* TextField */
 		final JTextField userNameTextField = new JTextField(20);
 		userNameTextField.setText("admin");
@@ -67,8 +77,8 @@ public class LoginUI extends JFrame {
 
 		/* Buttons */
 		JButton submitButton = createButton("Log In",
-				"Press to login in network monitoring program", simpleFont,
-				new ActionListener() {
+				"Press to login in network monitoring program", "login.png",
+				simpleFont, new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						// TODO Auto-generated method stub
@@ -77,15 +87,9 @@ public class LoginUI extends JFrame {
 						String password = passwordField.getText();
 						String url = serverIpTextField.getText();
 
-						if ((name.equals("")) && password.equals("")) {
-							errorLabel
-									.setText("Login name and Password are required !!");
-							errorLabel.setVisible(true);
-						} else if ((name.equals(""))) {
-							errorLabel.setText("Login name is required !!");
-							errorLabel.setVisible(true);
-						} else if (password.equals("")) {
-							errorLabel.setText("Password is required !!");
+						if ((name.equals("")) || password.equals("")
+								|| serverIpTextField.equals("")) {
+							errorLabel.setText("One of the fields is empty !!");
 							errorLabel.setVisible(true);
 						} else {
 							try {
@@ -93,8 +97,8 @@ public class LoginUI extends JFrame {
 								client.register(name, password);
 								if (client.getTokenSession() != null) {
 									// create Gui
-									MainUI graphics = new MainUI(
-											name, password, url);
+									MainUI graphics = new MainUI(name,
+											password, url);
 									graphics.createGUI();
 									setVisible(false);
 								} else {
@@ -104,24 +108,16 @@ public class LoginUI extends JFrame {
 								}
 							} catch (Exception e1) {
 								// e1.printStackTrace();
-								errorLabel.setText("HTTP 404 Not Found ");
+								errorLabel.setText("HTTP 404 - Not Found ");
 								errorLabel.setVisible(true);
 							}
 						}
 					}
 				});
-		
-		try {
-			Image img = ImageIO.read(getClass().getResourceAsStream("/resources/login_icon.gif"));
-			submitButton.setIcon(new ImageIcon(img));
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		
 
 		JButton resetButton = createButton("Reset",
-				"Press to clean all fields", simpleFont, new ActionListener() {
+				"Press to clean all fields", "reset.png", simpleFont,
+				new ActionListener() {
 
 					@Override
 					public void actionPerformed(ActionEvent arg0) {
@@ -134,7 +130,6 @@ public class LoginUI extends JFrame {
 				});
 
 		/* Add components to Panels */
-
 		informationPanel.add(serverIpLabel);
 		informationPanel.add(serverIpTextField);
 		informationPanel.add(userNameLabel);
@@ -153,29 +148,48 @@ public class LoginUI extends JFrame {
 		addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent we) {
 				int value = JOptionPane.showConfirmDialog(null,
-						"Are you sure you want to close login form?", "Close",
-						JOptionPane.YES_NO_OPTION);
+						"Are you sure you want to close Login Form?", "Close",
+						JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE);
 				if (value == 0) {
 					System.exit(0);
+				} else {
+					setVisible(true);
 				}
 			}
 		});
 		setVisible(true);
 	}
 
-	private JButton createButton(String title, String toolTip, Font font,
-			ActionListener listener) {
-		JButton butoon = new JButton(title);
-		butoon.setToolTipText(toolTip);
-		butoon.setFont(font);
-		butoon.addActionListener(listener);
-		return butoon;
+	private JButton createButton(String title, String toolTip, String path,
+			Font font, ActionListener listener) {
+		JButton button = new JButton(title);
+		button.setToolTipText(toolTip);
+		try {
+			Image img = ImageIO.read(getClass().getResourceAsStream(
+					"/resources/" + path));
+			button.setIcon(new ImageIcon(img));
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		button.setFont(font);
+		button.addActionListener(listener);
+		return button;
 	}
 
-	private JLabel createLabel(String title, Font font, Boolean visible) {
+	private JLabel createLabel(String title, String path, Font font,
+			Boolean visible) {
 		JLabel label = new JLabel(title);
 		label.setVisible(visible);
 		label.setFont(font);
+		try {
+			Image img = ImageIO.read(getClass().getResourceAsStream(
+					"/resources/" + path));
+			label.setIcon(new ImageIcon(img));
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		return label;
 	}
 
