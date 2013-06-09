@@ -14,14 +14,18 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Vector;
 
 import javax.imageio.ImageIO;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
@@ -47,8 +51,11 @@ public class MainUI extends JFrame {
 
 	int periodCoefficient = 3600, period = 1, timerDelay = 3000;
 	JTextField periodTextField;
+	JPanel workGraphPanel, dashBoardPanel;
+	JCheckBox dashboardCheckBox;
 	Timer updateImageTimer;
 	Vector<String> hostNameVector = new Vector<>();
+	List<GraphEntity> dashboardList = new ArrayList<GraphEntity>();
 	ZabbixClient client = new ZabbixClient();
 	FilterComboBox graphComboBox;
 	String login, password, url;
@@ -71,7 +78,11 @@ public class MainUI extends JFrame {
 				SwingUtilities.invokeLater(new Runnable() {
 					@Override
 					public void run() { // TODO Auto-generated method
-						onGraphChanged((String) graphComboBox.getSelectedItem());
+						onGraphChanged(
+								(String) graphComboBox.getSelectedItem(),
+								imagePanel);
+						onDashboardChanged(dashboardList, dashBoardPanel,
+								workGraphPanel, dashboardCheckBox.isSelected());
 					}
 				});
 			}
@@ -167,8 +178,9 @@ public class MainUI extends JFrame {
 				BorderLayout.EAST);
 
 		/* Panel to show graphics */
-		JPanel workGraphPanel = createPanel(mainPanel, BorderLayout.CENTER,
-				1000, 650, new BorderLayout());
+		workGraphPanel = createPanel(mainPanel, BorderLayout.CENTER, 1000, 650,
+				new BorderLayout());
+
 		workGraphPanel.add(imagePanel, BorderLayout.CENTER);
 
 		/* Panel with radio buttons */
@@ -215,23 +227,8 @@ public class MainUI extends JFrame {
 		periodPanel.add(dayRadioButton);
 		periodPanel.add(weekRadioButton);
 
-		/* Ckeck box */
-		final JCheckBox autoUpdateCheckBox = new JCheckBox("Auto Update");
-		autoUpdateCheckBox.setSelected(true);
-		autoUpdateCheckBox.setFont(simpleFont);
-		autoUpdateCheckBox.addItemListener(new ItemListener() {
-
-			@Override
-			public void itemStateChanged(ItemEvent arg0) {
-				// TODO Auto-generated method stub
-				if (!autoUpdateCheckBox.isSelected()) {
-					updateImageTimer.stop();
-
-				} else {
-					updateImageTimer.restart();
-				}
-			}
-		});
+		final JButton addDashButton = new JButton("Add to Dashboard");
+		JButton removeDashButton = new JButton("Remove from Dashboard");
 
 		/* ComboBox */
 		for (HostEntity x : client.getHostEntity()) {
@@ -254,8 +251,18 @@ public class MainUI extends JFrame {
 		graphComboBox.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				onGraphChanged((String) graphComboBox.getSelectedItem());
+				onGraphChanged((String) graphComboBox.getSelectedItem(),
+						imagePanel);
 				updateImageTimer.restart();
+				for (GraphEntity x : dashboardList)
+					for (GraphEntity as : client.getGraphEntity()) {
+						if (graphComboBox.getSelectedItem().equals(x.getName())
+								&& (as.equals(x))) {
+							addDashButton.setEnabled(false);
+						} else {
+							addDashButton.setEnabled(true);
+						}
+					}
 			}
 		});
 
@@ -263,6 +270,24 @@ public class MainUI extends JFrame {
 		if (!hostNameVector.isEmpty()) {
 			hostComboBox.setSelectedIndex(0);
 		}
+
+		/* Ckeck box */
+		final JCheckBox autoUpdateCheckBox = new JCheckBox("Auto Update");
+		autoUpdateCheckBox.setSelected(true);
+		autoUpdateCheckBox.setFont(simpleFont);
+		autoUpdateCheckBox.addItemListener(new ItemListener() {
+
+			@Override
+			public void itemStateChanged(ItemEvent arg0) {
+				// TODO Auto-generated method stub
+				if (!autoUpdateCheckBox.isSelected()) {
+					updateImageTimer.stop();
+
+				} else {
+					updateImageTimer.restart();
+				}
+			}
+		});
 
 		/* Panel with graphics list */
 		JPanel listGraphPanel = createPanel(mainPanel, BorderLayout.WEST, 250,
@@ -288,9 +313,95 @@ public class MainUI extends JFrame {
 			}
 		});
 
+		/* Dashboard */
+		final JPanel dashBoardButtonPanel = new JPanel(new FlowLayout());
+		dashBoardPanel = new JPanel();
+		dashBoardPanel.setSize(950, 500);
+
+		/* Checkbox dashboard */
+		dashboardCheckBox = new JCheckBox("Dashboard");
+		dashboardCheckBox.setFont(simpleFont);
+		dashboardCheckBox.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				// TODO Auto-generated method stub
+				if (dashboardCheckBox.isSelected()) {
+					updateImageTimer.restart();
+					graphComboBox.setEnabled(false);
+					hostComboBox.setEnabled(false);
+					imagePanel.setVisible(false);
+				} else {
+					graphComboBox.setEnabled(true);
+					hostComboBox.setEnabled(true);
+					imagePanel.setVisible(true);
+				}
+				onDashboardChanged(dashboardList, dashBoardPanel,
+						workGraphPanel, dashboardCheckBox.isSelected());
+			}
+		});
+
+		addDashButton.setFont(simpleFont);
+		addDashButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				addToDashboard((String) graphComboBox.getSelectedItem());
+
+			}
+		});
+
+		removeDashButton.setFont(simpleFont);
+
+		listGraphPanel.add(dashboardCheckBox);
+		dashBoardButtonPanel.add(addDashButton);
+		dashBoardButtonPanel.add(removeDashButton);
+		workGraphPanel.add(dashBoardButtonPanel, BorderLayout.SOUTH);
 		/* Add elements to Frame */
 		setJMenuBar(menuBar);
 		setVisible(true);
+	}
+
+	private void addToDashboard(String graphName) {
+		for (GraphEntity ge : client.getGraphEntity()) {
+			if (ge.getName().equals(graphName) && !dashboardList.contains(ge)) {
+				dashboardList.add(ge);
+			}
+		}
+	}
+
+	private void onDashboardChanged(List<GraphEntity> list, Container c,
+			Container main, Boolean flag) {
+
+		if (flag) {
+			int gridSize = Math.round( (list.size() + 1) / 2);
+			c.setLayout(new GridLayout(gridSize, 2));
+			c.removeAll();
+			main.add(c, BorderLayout.CENTER);
+			for (GraphEntity x : list) {
+				final ImagePanel xImagePanel = new ImagePanel();
+				c.add(xImagePanel);
+				try {
+					String imageurl = client.makeImageUrl(x.getGraphid(),
+							period);
+					BufferedImage img = (BufferedImage) client
+							.getGraphImage(imageurl);
+
+					Image newImg = img.getScaledInstance(c.getWidth() / 2,
+							c.getHeight() / gridSize, MAXIMIZED_VERT);
+					/*
+					 * double xCoef=(c.getWidth() / 2)/img.getWidth(); double
+					 * yCoef=(c.getHeight() / gridSize)/img.getHeight();
+					 */
+					xImagePanel.setImage(newImg);
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+			c.setVisible(true);
+		} else {
+			c.setVisible(false);
+		}
 	}
 
 	private void onHostChanged(String host) {
@@ -305,7 +416,7 @@ public class MainUI extends JFrame {
 		}
 	}
 
-	private void onGraphChanged(String graphName) {
+	private void onGraphChanged(String graphName, ImagePanel panel) {
 		GraphEntity graphObj = null;
 
 		for (GraphEntity ge : client.getGraphEntity()) {
@@ -323,7 +434,7 @@ public class MainUI extends JFrame {
 		try {
 			String imageurl = client
 					.makeImageUrl(graphObj.getGraphid(), period);
-			imagePanel.setImage(client.getGraphImage(imageurl));
+			panel.setImage(client.getGraphImage(imageurl));
 
 			// Dimension size = new Dimension();
 		} catch (IOException e1) {
