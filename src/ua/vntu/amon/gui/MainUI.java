@@ -1,20 +1,12 @@
 package ua.vntu.amon.gui;
 
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.GridLayout;
-import java.awt.Image;
-import java.awt.LayoutManager;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,22 +14,7 @@ import java.util.List;
 import java.util.Vector;
 
 import javax.imageio.ImageIO;
-import javax.swing.ButtonGroup;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
-import javax.swing.Timer;
+import javax.swing.*;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 
@@ -49,40 +26,48 @@ public class MainUI extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 
+    final static String SINGLE = "Single";
+    final static String DASHBOARD = "Dashboard";
+
 	int periodCoefficient = 3600, period = 1, timerDelay = 3000;
-	JTextField periodTextField;
-	JPanel workGraphPanel, dashBoardPanel;
-	JCheckBox dashboardCheckBox;
-	Timer updateImageTimer;
-	Vector<String> hostNameVector = new Vector<>();
-	List<GraphEntity> dashboardList = new ArrayList<GraphEntity>();
-	ZabbixClient client = new ZabbixClient();
-	FilterComboBox graphComboBox;
-	String login, password, url;
-	ImagePanel imagePanel = new ImagePanel();
+    private JTextField periodTextField;
+    private JPanel workGraphPanel, dashBoardPanel, graphPanel;
+
+    private CardLayout graphsLayout = new CardLayout();
+
+    private JCheckBox dashboardCheckBox;
+    private Timer updateImageTimer;
+    private Vector<String> hostNameVector = new Vector<>();
+    private List<GraphEntity> dashboardList = new ArrayList<GraphEntity>();
+    private ZabbixClient client = new ZabbixClient();
+    private FilterComboBox graphComboBox;
+    private String login, password, url;
+
+    private ImagePanel imagePanel = new ImagePanel();
 
 	public MainUI(String name, String password, String url) {
 		this.login = name;
 		this.password = password;
 		this.url = url;
+        createGUI();
 	}
 
-	public void createGUI() {
+	private void createGUI() {
 
 		Font simpleFont = new Font("Verdana", Font.PLAIN, 14);
 
 		updateImageTimer = new Timer(timerDelay, new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
 				SwingUtilities.invokeLater(new Runnable() {
 					@Override
-					public void run() { // TODO Auto-generated method
-						onGraphChanged(
-								(String) graphComboBox.getSelectedItem(),
-								imagePanel);
-						onDashboardChanged(dashboardList, dashBoardPanel,
-								workGraphPanel, dashboardCheckBox.isSelected());
+					public void run() {
+
+                    if(dashboardCheckBox.isSelected()) {
+                        updateDashboard(dashboardList, dashBoardPanel);
+                    } else {
+                        onGraphChanged((String) graphComboBox.getSelectedItem(), imagePanel);
+                    }
 					}
 				});
 			}
@@ -107,60 +92,6 @@ public class MainUI extends JFrame {
 		setResizable(true);
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
-		/* Menu */
-		JMenuBar menuBar = new JMenuBar();
-		createMenu(menuBar, "Help", null, simpleFont, new MenuListener() {
-
-			@Override
-			public void menuSelected(MenuEvent e) {
-				// TODO Auto-generated method stub
-				//
-				JOptionPane
-						.showMessageDialog(
-								getParent(),
-								"  This is Network Monitorring Program, which\n"
-										+ "help to follow for your host in network .\n"
-										+ "  You can choose available Host, with proposed\n"
-										+ "graphics.\n"
-										+ "  Enter a value for the Period during which you\n"
-										+ "want to observe the graphics.",
-								"Help", JOptionPane.INFORMATION_MESSAGE);
-			}
-
-			@Override
-			public void menuDeselected(MenuEvent e) {
-				// TODO Auto-generated method stub
-
-			}
-
-			@Override
-			public void menuCanceled(MenuEvent e) {
-				// TODO Auto-generated method stub
-
-			}
-		});
-		createMenu(menuBar, "Logout", " Logout ... ", simpleFont,
-				new MenuListener() {
-
-					@Override
-					public void menuSelected(MenuEvent e) {
-						new LoginUI();
-						setVisible(false);
-					}
-
-					@Override
-					public void menuDeselected(MenuEvent e) {
-						// TODO Auto-generated method stub
-
-					}
-
-					@Override
-					public void menuCanceled(MenuEvent e) {
-						// TODO Auto-generated method stub
-
-					}
-				});
-
 		// ******************************************************************
 		ButtonGroup periodGroup = new ButtonGroup();
 
@@ -168,20 +99,22 @@ public class MainUI extends JFrame {
 		periodTextField.setText("1");
 
 		/* Main Panel */
-		JPanel mainPanel = createPanel(getContentPane(), BorderLayout.CENTER,
-				1300, 675, new BorderLayout());
+		JPanel mainPanel = createPanel(getContentPane(), BorderLayout.CENTER, 1300, 675, new BorderLayout());
 
 		/* Panel with information about author */
-		JPanel infoPanel = createPanel(mainPanel, BorderLayout.SOUTH, 1300, 25,
-				new BorderLayout());
-		infoPanel.add(new JLabel(" Author - DERMAN YAROSLAV "),
-				BorderLayout.EAST);
+		JPanel infoPanel = createPanel(mainPanel, BorderLayout.SOUTH, 1300, 25, new BorderLayout());
+		infoPanel.add(new JLabel(" Author - DERMAN YAROSLAV "), BorderLayout.EAST);
 
 		/* Panel to show graphics */
-		workGraphPanel = createPanel(mainPanel, BorderLayout.CENTER, 1000, 650,
-				new BorderLayout());
+		workGraphPanel = createPanel(mainPanel, BorderLayout.CENTER, 1000, 650, new BorderLayout());
 
-		workGraphPanel.add(imagePanel, BorderLayout.CENTER);
+        graphPanel = new JPanel(graphsLayout);
+        workGraphPanel.add(graphPanel, BorderLayout.CENTER);
+
+        graphPanel.add(imagePanel, SINGLE);
+
+        dashBoardPanel = new JPanel();
+        graphPanel.add(dashBoardPanel, DASHBOARD);
 
 		/* Panel with radio buttons */
 		JPanel periodPanel = createPanel(workGraphPanel, BorderLayout.NORTH,
@@ -228,7 +161,7 @@ public class MainUI extends JFrame {
 		periodPanel.add(weekRadioButton);
 
 		final JButton addDashButton = new JButton("Add to Dashboard");
-		JButton removeDashButton = new JButton("Remove from Dashboard");
+		final JButton removeDashButton = new JButton("Remove from Dashboard");
 
 		/* ComboBox */
 		for (HostEntity x : client.getHostEntity()) {
@@ -251,8 +184,7 @@ public class MainUI extends JFrame {
 		graphComboBox.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				onGraphChanged((String) graphComboBox.getSelectedItem(),
-						imagePanel);
+				onGraphChanged((String) graphComboBox.getSelectedItem(), imagePanel);
 				updateImageTimer.restart();
 				for (GraphEntity x : dashboardList)
 					for (GraphEntity as : client.getGraphEntity()) {
@@ -282,7 +214,6 @@ public class MainUI extends JFrame {
 				// TODO Auto-generated method stub
 				if (!autoUpdateCheckBox.isSelected()) {
 					updateImageTimer.stop();
-
 				} else {
 					updateImageTimer.restart();
 				}
@@ -313,11 +244,6 @@ public class MainUI extends JFrame {
 			}
 		});
 
-		/* Dashboard */
-		final JPanel dashBoardButtonPanel = new JPanel(new FlowLayout());
-		dashBoardPanel = new JPanel();
-		dashBoardPanel.setSize(950, 500);
-
 		/* Checkbox dashboard */
 		dashboardCheckBox = new JCheckBox("Dashboard");
 		dashboardCheckBox.setFont(simpleFont);
@@ -325,19 +251,18 @@ public class MainUI extends JFrame {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				// TODO Auto-generated method stub
 				if (dashboardCheckBox.isSelected()) {
-					updateImageTimer.restart();
-					graphComboBox.setEnabled(false);
-					hostComboBox.setEnabled(false);
-					imagePanel.setVisible(false);
+                    enable(false, graphComboBox, hostComboBox, addDashButton, removeDashButton);
+                    reinitDashboardPane(dashboardList, dashBoardPanel);
+                    updateDashboard(dashboardList, dashBoardPanel);
+                    graphsLayout.show(graphPanel, DASHBOARD);
 				} else {
-					graphComboBox.setEnabled(true);
-					hostComboBox.setEnabled(true);
-					imagePanel.setVisible(true);
+                    enable(true, graphComboBox, hostComboBox, addDashButton, removeDashButton);
+                    dashBoardPanel.removeAll();
+                    graphsLayout.show(graphPanel, SINGLE);
 				}
-				onDashboardChanged(dashboardList, dashBoardPanel,
-						workGraphPanel, dashboardCheckBox.isSelected());
+
+                updateImageTimer.restart();
 			}
 		});
 
@@ -353,55 +278,80 @@ public class MainUI extends JFrame {
 		removeDashButton.setFont(simpleFont);
 
 		listGraphPanel.add(dashboardCheckBox);
+
+        final JPanel dashBoardButtonPanel = new JPanel(new FlowLayout());
 		dashBoardButtonPanel.add(addDashButton);
 		dashBoardButtonPanel.add(removeDashButton);
 		workGraphPanel.add(dashBoardButtonPanel, BorderLayout.SOUTH);
 		/* Add elements to Frame */
-		setJMenuBar(menuBar);
-		setVisible(true);
+		setJMenuBar(createMenu(simpleFont));
 	}
 
-	private void addToDashboard(String graphName) {
+
+    private JMenuBar createMenu(Font menuFont) {
+        /* Menu */
+        JMenuBar menuBar = new JMenuBar();
+
+        createMenu(menuBar, "Help", null, menuFont, new MenuListener() {
+
+            @Override
+            public void menuSelected(MenuEvent e) {
+                // TODO Auto-generated method stub
+                //
+                JOptionPane.showMessageDialog(
+                        getParent(),
+                        "  This is Network Monitorring Program, which\n"
+                                + "help to follow for your host in network .\n"
+                                + "  You can choose available Host, with proposed\n"
+                                + "graphics.\n"
+                                + "  Enter a value for the Period during which you\n"
+                                + "want to observe the graphics.",
+                        "Help", JOptionPane.INFORMATION_MESSAGE);
+            }
+
+            @Override public void menuDeselected(MenuEvent e) {}
+            @Override public void menuCanceled(MenuEvent e) {}
+        });
+
+        createMenu(menuBar, "Logout", " Logout ... ", menuFont, new MenuListener() {
+            @Override
+            public void menuSelected(MenuEvent e) {
+                new LoginUI();
+                setVisible(false);
+            }
+
+            @Override public void menuDeselected(MenuEvent e) {}
+            @Override public void menuCanceled(MenuEvent e) {}
+        });
+        return menuBar;
+    }
+
+    private void reinitDashboardPane(List<GraphEntity> list, JPanel pane) {
+        pane.removeAll();
+        if(list.isEmpty()) return ;
+
+        pane.setLayout(new GridLayout(list.size()/2 + 1, 2));
+
+        for(int i = 0; i < list.size(); i++) {
+            pane.add(new ImagePanel());
+        }
+    }
+
+    private void addToDashboard(String graphName) {
 		for (GraphEntity ge : client.getGraphEntity()) {
 			if (ge.getName().equals(graphName) && !dashboardList.contains(ge)) {
 				dashboardList.add(ge);
+                break;
 			}
 		}
 	}
 
-	private void onDashboardChanged(List<GraphEntity> list, Container c,
-			Container main, Boolean flag) {
+	private void updateDashboard(List<GraphEntity> list, Container dashboard) {
+        Component[] components = dashboard.getComponents();
 
-		if (flag) {
-			int gridSize = Math.round( (list.size() + 1) / 2);
-			c.setLayout(new GridLayout(gridSize, 2));
-			c.removeAll();
-			main.add(c, BorderLayout.CENTER);
-			for (GraphEntity x : list) {
-				final ImagePanel xImagePanel = new ImagePanel();
-				c.add(xImagePanel);
-				try {
-					String imageurl = client.makeImageUrl(x.getGraphid(),
-							period);
-					BufferedImage img = (BufferedImage) client
-							.getGraphImage(imageurl);
-
-					Image newImg = img.getScaledInstance(c.getWidth() / 2,
-							c.getHeight() / gridSize, MAXIMIZED_VERT);
-					/*
-					 * double xCoef=(c.getWidth() / 2)/img.getWidth(); double
-					 * yCoef=(c.getHeight() / gridSize)/img.getHeight();
-					 */
-					xImagePanel.setImage(newImg);
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-			}
-			c.setVisible(true);
-		} else {
-			c.setVisible(false);
-		}
+        for (int i = 0; i < components.length; i++) {
+            updateImage(list.get(i), (ImagePanel) components[i]);
+        }
 	}
 
 	private void onHostChanged(String host) {
@@ -431,17 +381,18 @@ public class MainUI extends JFrame {
 					"Graph object is not found for name: " + graphName);
 		}
 
-		try {
-			String imageurl = client
-					.makeImageUrl(graphObj.getGraphid(), period);
-			panel.setImage(client.getGraphImage(imageurl));
-
-			// Dimension size = new Dimension();
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+		updateImage(graphObj, panel);
 	}
+
+    private void updateImage(GraphEntity ge, ImagePanel panel) {
+        try {
+            String imageurl = client.makeImageUrl(ge.getGraphid(), period);
+            panel.setImage(client.getGraphImage(imageurl));
+        } catch (IOException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
+    }
 
 	private void checkPeriod() {
 		period = Integer.parseInt(periodTextField.getText());
@@ -456,6 +407,12 @@ public class MainUI extends JFrame {
 		}
 		updateImageTimer.restart();
 	}
+
+    private void enable(boolean enable, JComponent... components) {
+        for(JComponent c : components) {
+            c.setEnabled(enable);
+        }
+    }
 
 	private JPanel createPanel(Container c, String layout, int width,
 			int height, LayoutManager layoutPanel) {

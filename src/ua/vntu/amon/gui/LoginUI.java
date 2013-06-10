@@ -71,9 +71,9 @@ public class LoginUI extends JFrame {
 		passwordField.setToolTipText("Enter your password ");
 
 		final JTextField serverIpTextField = new JTextField();
-		serverIpTextField.setText("http://192.168.56.101/api_jsonrpc.php");
+		serverIpTextField.setText("http://192.168.56.101");
 		serverIpTextField
-				.setToolTipText("Enter IP adress of Zabbix server, such as 'http://192.168.56.101/api_jsonrpc.php' ");
+				.setToolTipText("Enter IP address of Zabbix server, such as 'http://192.168.56.101/api_jsonrpc.php' ");
 
 		/* Buttons */
 		JButton submitButton = createButton("Log In",
@@ -97,9 +97,7 @@ public class LoginUI extends JFrame {
 								client.register(name, password);
 								if (client.getTokenSession() != null) {
 									// create Gui
-									MainUI graphics = new MainUI(name,
-											password, url);
-									graphics.createGUI();
+									new MainUI(name, password, url).setVisible(true);
 									setVisible(false);
 								} else {
 									errorLabel

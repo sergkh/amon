@@ -52,13 +52,14 @@ import ua.vntu.amon.json.response.HostResponse;
 
 public class ZabbixClient {
 
-	private static final String CONTENT_TYPE = "application/json";
+    private static final String CONTENT_TYPE = "application/json";
 
 	private static final int PROCESSORS = 20;
 
 	private static final int CONNECTION_TIMEOUT = 30000;
+    public static final String API_SCRIPT = "/api_jsonrpc.php";
 
-	private String tokenSession;
+    private String tokenSession;
 
 	protected final HttpClient httpclient;
 	protected final ObjectMapper mapper;
@@ -88,7 +89,7 @@ public class ZabbixClient {
 	}
 
 	private <T> T send(Object message, Class<T> clazz) throws IOException {
-		HttpPost post = new HttpPost(url);
+		HttpPost post = new HttpPost(url + API_SCRIPT);
 		post.setHeader("Content-Type", CONTENT_TYPE);
 		post.getParams().setIntParameter("http.socket.timeout",
 				CONNECTION_TIMEOUT);
@@ -220,13 +221,12 @@ public class ZabbixClient {
 
 	public String makeImageUrl(int graphid, int period) {
 		String imageUrl = "";
-		String baseUrl = url.split("/api_jsonrpc.php")[0];
 		String graphidUrl = "/chart2.php?graphid=" + graphid;
 		if (period < 3600) {
 			period = 3600;
 		}
 		String periodUrl = "&period=" + period;
-		imageUrl = baseUrl + graphidUrl + periodUrl;
+		imageUrl = url + graphidUrl + periodUrl;
 		return imageUrl;
 	}
 
@@ -355,6 +355,10 @@ public class ZabbixClient {
 	}
 
 	public void setUrl(String url) {
-		this.url = url;
+        if(url.endsWith("/")) {
+            this.url = url.substring(0, url.length() - 1);
+        } else {
+            this.url = url;
+        }
 	}
 }
